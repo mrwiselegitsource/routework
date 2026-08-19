@@ -323,6 +323,15 @@ export const remoteDb = {
     if (error) throw error
     return data ?? []
   },
+  async getCustomerOrders(customerId) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data ?? []
+  },
   async getCustomer(id) {
     const { data, error } = await supabase.from('customers').select('*').eq('id', id).maybeSingle()
     if (error) throw error

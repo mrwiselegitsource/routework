@@ -3,6 +3,7 @@ import { Routes, Route, Outlet, Link } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Package } from 'lucide-react';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
+import { CartProvider } from './context/CartContext';
 import TrackingProvider from './components/TrackingProvider';
 import Topbar from './components/Topbar';
 import Navbar from './components/Navbar';
@@ -76,8 +77,9 @@ function App() {
   return (
     <HelmetProvider>
       <CustomerAuthProvider>
-        <TrackingProvider>
-          <Routes>
+        <CartProvider>
+          <TrackingProvider>
+            <Routes>
           {/* Public Facing Routes */}
           <Route element={<PublicAppLayout />}>
             <Route path="/" element={<Home />} />
@@ -118,8 +120,9 @@ function App() {
             <Route path="staff" element={<RequireAuth adminOnly><Staff /></RequireAuth>} />
             <Route path="activity" element={<RequireAuth adminOnly><Activity /></RequireAuth>} />
           </Route>
-        </Routes>
-      </TrackingProvider>
+          </Routes>
+        </TrackingProvider>
+        </CartProvider>
       </CustomerAuthProvider>
     </HelmetProvider>
   );

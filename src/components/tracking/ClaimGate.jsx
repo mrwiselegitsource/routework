@@ -1,36 +1,25 @@
 import React, { useState } from 'react';
-import { CreditCard, CheckCircle2, Phone, MapPin } from 'lucide-react';
+import { CreditCard, CheckCircle2, ShoppingCart, Loader2, ArrowRight } from 'lucide-react';
+import { useCart } from '../../context/CartContext';
+import { Link } from 'react-router-dom';
 
-export default function ClaimGate({ paymentStatus, claimStatus, amountDue, onPay, onSubmitClaim }) {
-  const [form, setForm] = useState({ name: '', phone: '', address: '', region: 'Greater Accra' });
+export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amountDue, recipientDetails }) {
+  const { cart, addToCart, loading } = useCart();
+  const [adding, setAdding] = useState(false);
 
-  if (paymentStatus === 'Unpaid') {
-    return (
-      <div className="bg-red-50/50 rounded-3xl border border-red-100 p-8 mt-8 text-center">
-        <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CreditCard size={32} />
-        </div>
-        <h3 className="text-2xl font-bold text-red-800 mb-2">Payment Required</h3>
-        <p className="text-red-600/80 mb-6 max-w-md mx-auto">
-          You must pay the outstanding balance before you can claim this item and provide delivery details.
-        </p>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-100 max-w-sm mx-auto mb-8">
-          <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">Amount Due</p>
-          <p className="text-4xl font-extrabold text-gray-900">GH₵ {amountDue}</p>
-        </div>
-        
-        {/* Mock Payment Input */}
-        <div className="max-w-sm mx-auto space-y-4">
-          <input type="text" placeholder="Mobile Money Number" className="w-full px-5 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-200" />
-          <button 
-            onClick={onPay}
-            className="w-full bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-red-700 transition-colors">
-            Pay GH₵ {amountDue} Now
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const isInCart = cart?.items?.some(i => i.order_id === trackingId);
+
+  const handleAddToCart = async () => {
+    setAdding(true);
+    try {
+      await addToCart(trackingId);
+    } catch (err) {
+      console.error(err);
+      alert('Must be logged in to add to cart');
+    } finally {
+      setAdding(false);
+    }
+  };
 
   if (claimStatus === 'Claimed') {
     return (
@@ -38,67 +27,61 @@ export default function ClaimGate({ paymentStatus, claimStatus, amountDue, onPay
         <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 size={32} />
         </div>
-        <h3 className="text-2xl font-bold text-green-800 mb-2">Delivery Details Received</h3>
+        <h3 className="text-2xl font-bold text-green-800 mb-2">Delivery Scheduled</h3>
         <p className="text-green-700/80 mb-6 max-w-md mx-auto">
-          We'll be in touch to arrange final delivery to the address provided.
+          This shipment has been claimed and delivery is being processed.
         </p>
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 max-w-md mx-auto text-left space-y-3">
-           <p className="text-sm"><span className="font-semibold text-gray-500">Name:</span> Kwame Osei</p>
-           <p className="text-sm"><span className="font-semibold text-gray-500">Phone:</span> +233 54 123 4567</p>
-           <p className="text-sm"><span className="font-semibold text-gray-500">Address:</span> 12 Independence Ave</p>
-           <p className="text-sm"><span className="font-semibold text-gray-500">Region:</span> Greater Accra</p>
-        </div>
+        {recipientDetails && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 max-w-md mx-auto text-left space-y-3">
+             <p className="text-sm"><span className="font-semibold text-gray-500">Name:</span> {recipientDetails.recipient_name}</p>
+             <p className="text-sm"><span className="font-semibold text-gray-500">Phone:</span> {recipientDetails.recipient_phone}</p>
+             <p className="text-sm"><span className="font-semibold text-gray-500">Address:</span> {recipientDetails.recipient_address}</p>
+             <p className="text-sm"><span className="font-semibold text-gray-500">Region:</span> {recipientDetails.recipient_region}</p>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Paid, but Not Claimed yet
+  // Not Claimed yet
   return (
-    <div className="bg-blue-50/30 rounded-3xl border border-blue-100 p-8 md:p-10 mt-8">
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-          <MapPin size={24} />
-        </div>
-        <div>
-          <h3 className="text-2xl font-bold text-blue-900">Where should we deliver it?</h3>
-          <p className="text-gray-600">Please provide your details to claim this shipment.</p>
-        </div>
+    <div className="bg-blue-50/30 rounded-3xl border border-blue-100 p-8 md:p-10 mt-8 text-center">
+      <div className="w-16 h-16 bg-blue-100 text-[#0033a0] rounded-full flex items-center justify-center mx-auto mb-4">
+        <ShoppingCart size={32} />
       </div>
+      
+      <h3 className="text-2xl font-bold text-blue-900 mb-2">Ready to Claim?</h3>
+      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+        Add this shipment to your cart to select your delivery preferences and complete the claim process.
+      </p>
 
-      <form onSubmit={(e) => { e.preventDefault(); onSubmitClaim(form); }} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-            <input required type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200" placeholder="John Doe" />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-            <input required type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200" placeholder="+233 54 000 0000" />
-          </div>
+      {paymentStatus === 'Unpaid' && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-red-100 max-w-sm mx-auto mb-6 flex items-center justify-between">
+          <span className="text-sm font-semibold text-red-600 flex items-center gap-2">
+            <CreditCard size={18} /> Payment Required
+          </span>
+          <span className="font-bold text-gray-900">GH₵ {amountDue}</span>
         </div>
-        
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Region</label>
-          <select value={form.region} onChange={e => setForm({...form, region: e.target.value})} className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200">
-            <option>Greater Accra</option>
-            <option>Ashanti</option>
-            <option>Central</option>
-            <option>Eastern</option>
-            <option>Western</option>
-            <option>Volta</option>
-            <option>Northern</option>
-          </select>
-        </div>
+      )}
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Address</label>
-          <textarea required rows="3" value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="w-full px-5 py-4 rounded-xl bg-white border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 resize-none" placeholder="123 Main Street, House No..."></textarea>
-        </div>
-
-        <button type="submit" className="w-full bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-600 transition-colors">
-          Submit Delivery Details
+      {isInCart ? (
+        <Link 
+          to="/cart"
+          className="inline-flex items-center justify-center w-full max-w-sm bg-green-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-600 transition-colors gap-2"
+        >
+          <CheckCircle2 className="w-5 h-5" />
+          Added to Cart — Proceed to Checkout
+        </Link>
+      ) : (
+        <button 
+          onClick={handleAddToCart}
+          disabled={adding || loading}
+          className="w-full max-w-sm mx-auto bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingCart className="w-5 h-5" />}
+          Add to Cart
         </button>
-      </form>
+      )}
     </div>
   );
 }

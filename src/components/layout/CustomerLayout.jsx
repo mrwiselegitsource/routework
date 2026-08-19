@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { User, Package, ShoppingCart, Search, LogOut } from 'lucide-react';
 import { auth } from '../../lib/db';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
+import { useCart } from '../../context/CartContext';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 
@@ -16,6 +17,7 @@ const CUSTOMER_LINKS = [
 export default function CustomerLayout() {
   const navigate = useNavigate();
   const { profile } = useCustomerAuth();
+  const { cart } = useCart();
 
   const handleLogout = async () => {
     await auth.customerSignOut();
@@ -47,15 +49,22 @@ export default function CustomerLayout() {
                     to={link.to}
                     end={link.end}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${
+                      `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors whitespace-nowrap justify-between ${
                         isActive
                           ? 'bg-[#0033a0] text-white'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`
                     }
                   >
-                    <link.icon className="w-5 h-5" />
-                    {link.label}
+                    <div className="flex items-center gap-3">
+                      <link.icon className="w-5 h-5" />
+                      {link.label}
+                    </div>
+                    {link.to === '/cart' && cart?.items?.length > 0 && (
+                      <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        {cart.items.length}
+                      </span>
+                    )}
                   </NavLink>
                 ))}
                 

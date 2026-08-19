@@ -109,6 +109,12 @@ export const localDb = {
     return [...table.profiles].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
   },
 
+  async getCustomerOrders(customerId) {
+    return table.orders
+      .filter((o) => o.customer_id === customerId)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  },
+
   async setStaffActive(id, active) {
     table.profiles = table.profiles.map((p) => (p.id === id ? { ...p, active } : p))
     return table.profiles.find((p) => p.id === id)

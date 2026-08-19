@@ -131,21 +131,7 @@ export default function Track() {
     setSearchInput('');
   };
 
-  const handleClaim = async (form) => {
-    await db.submitDeliveryDetails(order.order_id, {
-      recipient_name: form.name,
-      recipient_phone: form.phone,
-      recipient_address: form.address,
-      recipient_region: form.region
-    });
-    await db.addTrackingEvent(order.order_id, {
-      status: 'delivery_arranged',
-      location: 'Dispatch Center',
-      description: 'Recipient submitted delivery details. Arranging dispatch.'
-    }, null);
-    await loadFullOrder(order.order_id);
-  };
-
+  // Claim handled via Cart flow now
   // Convert raw DB events to Timeline component format
   const generateTimelineSteps = () => {
     if (!events.length) return [];
@@ -317,10 +303,16 @@ export default function Track() {
                 />
 
                 <ClaimGate
+                  trackingId={order.order_id}
                   paymentStatus={order.payment_status === 'unpaid' ? 'Unpaid' : 'Paid'}
                   claimStatus={isClaimed ? 'Claimed' : 'Unclaimed'}
                   amountDue={order.amount_due}
-                  onSubmitClaim={handleClaim}
+                  recipientDetails={{
+                    recipient_name: order.recipient_name,
+                    recipient_phone: order.recipient_phone,
+                    recipient_address: order.recipient_address,
+                    recipient_region: order.recipient_region
+                  }}
                 />
 
                 {/* Support Section */}
