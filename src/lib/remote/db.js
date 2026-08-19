@@ -161,7 +161,248 @@ export const remoteDb = {
       unpaid: rows.filter((o) => o.payment_status === 'unpaid').length,
       exceptions: rows.filter((o) => EXCEPTION_STATUSES.includes(o.current_status)).length,
       delivered: rows.filter((o) => o.current_status === 'delivered').length,
+      inTransit: rows.filter((o) => o.current_status === 'in_transit' || o.current_status === 'departed_origin').length,
+      arrivingSoon: rows.filter((o) => o.current_status === 'arrived_destination' || o.current_status === 'released_from_customs').length,
+      outForDelivery: rows.filter((o) => o.current_status === 'out_for_delivery').length,
+      delayed: rows.filter((o) => o.current_status === 'delayed').length,
     }
+  },
+
+
+  // --- TRACKING SECURITY ---
+  async generateTrackingPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let p1 = '', p2 = ''
+    for (let i = 0; i < 4; i++) p1 += chars[Math.floor(Math.random() * chars.length)]
+    for (let i = 0; i < 4; i++) p2 += chars[Math.floor(Math.random() * chars.length)]
+    return `RW-${p1}-${p2}`
+  },
+
+  async verifyTrackingPassword(trackingNumber, password) {
+    const { data, error } = await supabase.rpc('verify_tracking_password', { 
+      p_order_id: trackingNumber, 
+      p_password: password 
+    })
+    if (error) throw error
+    return data
+  },
+
+  async getOrderSecurity(orderId) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('tracking_protected, failed_attempts, locked_until, password_created_at')
+      .eq('order_id', orderId)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return null
+    return {
+      protected: !!data.tracking_protected,
+      failedAttempts: data.failed_attempts || 0,
+      lockedUntil: data.locked_until,
+      passwordCreatedAt: data.password_created_at
+    }
+  },
+
+  async regenerateTrackingPassword(orderId) {
+    const newPassword = await this.generateTrackingPassword()
+    
+    // Hash password using Web Crypto API
+    const encoder = new TextEncoder()
+    const data = encoder.encode(newPassword)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        tracking_password_hash: hashHex,
+        password_created_at: new Date().toISOString(),
+        failed_attempts: 0,
+        locked_until: null
+      })
+      .eq('order_id', orderId)
+      
+    if (error) throw error
+    await supabase.from('audit_logs').insert({ 
+      actor: 'system', 
+      action: 'regenerated_password', 
+      resource: 'orders', 
+      resource_id: orderId, 
+      reason: 'Manual regeneration' 
+    })
+    return newPassword
+  },
+
+  async getGuestOrderPreview(orderId) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('order_id, item_name, current_status, current_location, estimated_delivery, order_media(storage_path, media_type)')
+      .eq('order_id', orderId)
+      .maybeSingle()
+      
+    if (error) throw error
+    if (!data) return null
+    
+    let previewImage = null
+    if (data.order_media && data.order_media.length > 0) {
+      const media = data.order_media
+      const img = media.find(m => m.media_type === 'image') || media[0]
+      if (img.storage_path.startsWith('http')) {
+        previewImage = img.storage_path
+      } else {
+        const { data: publicUrlData } = supabase.storage.from('order-media').getPublicUrl(img.storage_path)
+        previewImage = publicUrlData.publicUrl
+      }
+    }
+
+    return {
+      order_id: data.order_id,
+      item_name: data.item_name,
+      current_status: data.current_status,
+      current_location: data.current_location,
+      estimated_delivery: data.estimated_delivery,
+      preview_image: previewImage
+    }
+  },
+
+  // --- REGIONS & DELIVERY ---
+  async getRegions() {
+    const { data, error } = await supabase.from('regions').select('*').order('name')
+    if (error) throw error
+    return data ?? []
+  },
+  async getPickupPoints(regionId) {
+    let query = supabase.from('pickup_points').select('*').order('name')
+    if (regionId) query = query.eq('region_id', regionId)
+    const { data, error } = await query
+    if (error) throw error
+    return data ?? []
+  },
+  async getDeliveryPricing(regionId) {
+    let query = supabase.from('delivery_pricing').select('*')
+    if (regionId) query = query.eq('region_id', regionId)
+    const { data, error } = await query
+    if (error) throw error
+    return data ?? []
+  },
+  async addRegion(fields) {
+    const { data, error } = await supabase.from('regions').insert(fields).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateRegion(id, fields) {
+    const { data, error } = await supabase.from('regions').update(fields).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async addPickupPoint(fields) {
+    const { data, error } = await supabase.from('pickup_points').insert(fields).select().single()
+    if (error) throw error
+    return data
+  },
+  async updatePickupPoint(id, fields) {
+    const { data, error } = await supabase.from('pickup_points').update(fields).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async addDeliveryPricing(fields) {
+    const { data, error } = await supabase.from('delivery_pricing').insert(fields).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateDeliveryPricing(id, fields) {
+    const { data, error } = await supabase.from('delivery_pricing').update(fields).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+
+  // --- CUSTOMERS ---
+  async getCustomers() {
+    const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false })
+    if (error) throw error
+    return data ?? []
+  },
+  async getCustomer(id) {
+    const { data, error } = await supabase.from('customers').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    return data
+  },
+  async createCustomer(fields) {
+    const { data, error } = await supabase.from('customers').insert(fields).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateCustomer(id, fields) {
+    const { data, error } = await supabase.from('customers').update(fields).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+
+  // --- CART ---
+  async getCart(customerId) {
+    const { data, error } = await supabase
+      .from('carts')
+      .select('*, cart_items(*)')
+      .eq('customer_id', customerId)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return { items: [] }
+    return { ...data, items: data.cart_items ?? [] }
+  },
+  async addToCart(customerId, orderId) {
+    // Upsert cart
+    const { data: cart, error: cartError } = await supabase
+      .from('carts')
+      .upsert({ customer_id: customerId }, { onConflict: 'customer_id' })
+      .select()
+      .single()
+    if (cartError) throw cartError
+
+    // Insert item
+    const { error: itemError } = await supabase
+      .from('cart_items')
+      .insert({ cart_id: cart.id, order_id: orderId })
+    if (itemError) throw itemError
+
+    return this.getCart(customerId)
+  },
+  async removeFromCart(customerId, orderId) {
+    const cart = await this.getCart(customerId)
+    if (cart && cart.id) {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .match({ cart_id: cart.id, order_id: orderId })
+      if (error) throw error
+    }
+    return this.getCart(customerId)
+  },
+  async clearCart(customerId) {
+    const cart = await this.getCart(customerId)
+    if (cart && cart.id) {
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('cart_id', cart.id)
+      if (error) throw error
+    }
+    return this.getCart(customerId)
+  },
+
+  // --- AUDIT ---
+  async addAuditLog(entry) {
+    const { data, error } = await supabase.from('audit_logs').insert(entry).select().single()
+    if (error) throw error
+    return data
+  },
+  async getAuditLogs(filters = {}) {
+    let query = supabase.from('audit_logs').select('*').order('timestamp', { ascending: false })
+    if (filters.resource) query = query.eq('resource', filters.resource)
+    if (filters.resource_id) query = query.eq('resource_id', filters.resource_id)
+    const { data, error } = await query
+    if (error) throw error
+    return data ?? []
   },
 
   // --- STAFF ---

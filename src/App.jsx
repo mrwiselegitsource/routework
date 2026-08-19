@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Outlet, Link } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Package } from 'lucide-react';
+import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import TrackingProvider from './components/TrackingProvider';
 import Topbar from './components/Topbar';
 import Navbar from './components/Navbar';
@@ -18,6 +19,20 @@ import NotFound from './pages/NotFound';
 import ThankYou from './pages/ThankYou';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
+
+// Customer Layout and Guards
+import CustomerLayout from './components/layout/CustomerLayout';
+import RequireCustomerAuth from './components/auth/RequireCustomerAuth';
+
+// Customer Auth Pages
+import CustomerSignup from './pages/CustomerSignup';
+import CustomerLogin from './pages/CustomerLogin';
+import ForgotPassword from './pages/ForgotPassword';
+
+// Customer Protected Pages
+import CustomerAccount from './pages/CustomerAccount';
+import CustomerOrders from './pages/CustomerOrders';
+import Cart from './pages/Cart';
 
 // Admin imports
 import RequireAuth from './components/auth/RequireAuth';
@@ -60,8 +75,9 @@ function PublicAppLayout() {
 function App() {
   return (
     <HelmetProvider>
-      <TrackingProvider>
-        <Routes>
+      <CustomerAuthProvider>
+        <TrackingProvider>
+          <Routes>
           {/* Public Facing Routes */}
           <Route element={<PublicAppLayout />}>
             <Route path="/" element={<Home />} />
@@ -79,6 +95,18 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
 
+          {/* Customer Auth Routes */}
+          <Route path="/signup" element={<CustomerSignup />} />
+          <Route path="/login" element={<CustomerLogin />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* Customer Protected Routes */}
+          <Route element={<RequireCustomerAuth><CustomerLayout /></RequireCustomerAuth>}>
+            <Route path="/account" element={<CustomerAccount />} />
+            <Route path="/account/orders" element={<CustomerOrders />} />
+            <Route path="/cart" element={<Cart />} />
+          </Route>
+
           {/* Admin Panel Routes */}
           <Route path="/admin/login" element={<Login />} />
           <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
@@ -92,6 +120,7 @@ function App() {
           </Route>
         </Routes>
       </TrackingProvider>
+      </CustomerAuthProvider>
     </HelmetProvider>
   );
 }

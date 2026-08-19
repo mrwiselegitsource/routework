@@ -159,12 +159,208 @@ export const localDb = {
 
   async getDashboardStats() {
     const orders = table.orders
+    const EXCEPTION_STATUSES = ['delivery_attempt_failed', 'held_by_customs', 'address_issue', 'returned_to_sender']
     return {
       total: orders.length,
       unpaid: orders.filter((o) => o.payment_status === 'unpaid').length,
       exceptions: orders.filter((o) => EXCEPTION_STATUSES.includes(o.current_status)).length,
       delivered: orders.filter((o) => o.current_status === 'delivered').length,
+      inTransit: orders.filter((o) => o.current_status === 'in_transit' || o.current_status === 'departed_origin').length,
+      arrivingSoon: orders.filter((o) => o.current_status === 'arrived_destination' || o.current_status === 'released_from_customs').length,
+      outForDelivery: orders.filter((o) => o.current_status === 'out_for_delivery').length,
+      delayed: orders.filter((o) => o.current_status === 'delayed').length,
     }
+  },
+
+
+  // --- TRACKING SECURITY ---
+  async generateTrackingPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let p1 = '', p2 = ''
+    for (let i = 0; i < 4; i++) p1 += chars[Math.floor(Math.random() * chars.length)]
+    for (let i = 0; i < 4; i++) p2 += chars[Math.floor(Math.random() * chars.length)]
+    return `RW-${p1}-${p2}`
+  },
+
+  async verifyTrackingPassword(trackingNumber, password) {
+    const o = table.orders.find((ord) => ord.order_id === trackingNumber)
+    if (!o) return { success: false, locked: false, remainingAttempts: 0, lockedUntil: null }
+    if (!o.tracking_protected) return { success: true, locked: false }
+
+    const now = new Date()
+    if (o.locked_until && new Date(o.locked_until) > now) {
+      return { success: false, locked: true, remainingAttempts: 0, lockedUntil: o.locked_until }
+    }
+
+    const encoder = new TextEncoder()
+    const data = encoder.encode(password)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    if (o._tracking_password === password || btoa(password) === o.tracking_password_hash || hashHex === o.tracking_password_hash) {
+      table.orders = table.orders.map((ord) => 
+        ord.order_id === trackingNumber ? { ...ord, failed_attempts: 0, locked_until: null } : ord
+      )
+      return { success: true, locked: false }
+    }
+
+    const failed_attempts = (o.failed_attempts || 0) + 1
+    const locked = failed_attempts >= 3
+    const locked_until = locked ? new Date(now.getTime() + 15 * 60000).toISOString() : null
+    table.orders = table.orders.map((ord) => 
+      ord.order_id === trackingNumber ? { ...ord, failed_attempts, locked_until } : ord
+    )
+
+    return { 
+      success: false, 
+      locked, 
+      remainingAttempts: Math.max(0, 3 - failed_attempts), 
+      lockedUntil: locked_until 
+    }
+  },
+
+  async getOrderSecurity(orderId) {
+    const o = table.orders.find((ord) => ord.order_id === orderId)
+    if (!o) return null
+    return {
+      protected: !!o.tracking_protected,
+      failedAttempts: o.failed_attempts || 0,
+      lockedUntil: o.locked_until,
+      passwordCreatedAt: o.password_created_at
+    }
+  },
+
+  async regenerateTrackingPassword(orderId) {
+    const newPassword = await this.generateTrackingPassword()
+    const encoder = new TextEncoder()
+    const data = encoder.encode(newPassword)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+    table.orders = table.orders.map((ord) => 
+      ord.order_id === orderId ? { 
+        ...ord, 
+        _tracking_password: newPassword,
+        tracking_password_hash: hashHex,
+        password_created_at: new Date().toISOString(),
+        failed_attempts: 0,
+        locked_until: null
+      } : ord
+    )
+    await this.addAuditLog({ actor: 'system', action: 'regenerated_password', resource: 'orders', resource_id: orderId, reason: 'Manual regeneration' })
+    return newPassword
+  },
+
+  async getGuestOrderPreview(orderId) {
+    const o = table.orders.find((ord) => ord.order_id === orderId)
+    if (!o) return null
+    const media = table.media.filter((m) => m.order_id === orderId).sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    return {
+      order_id: o.order_id,
+      item_name: o.item_name,
+      current_status: o.current_status,
+      current_location: o.current_location,
+      estimated_delivery: o.estimated_delivery,
+      preview_image: media.length > 0 ? (media.find(m => m.media_type === 'image')?.storage_path || media[0].storage_path) : null
+    }
+  },
+
+  // --- REGIONS & DELIVERY ---
+  async getRegions() { return [...table.regions] },
+  async getPickupPoints(regionId) { 
+    const pts = table.pickup_points
+    return regionId ? pts.filter(p => p.region_id === regionId) : [...pts]
+  },
+  async getDeliveryPricing(regionId) {
+    const prc = table.delivery_pricing
+    return regionId ? prc.filter(p => p.region_id === regionId) : [...prc]
+  },
+  async addRegion(fields) {
+    const r = { id: uid('reg'), ...fields, created_at: new Date().toISOString() }
+    table.regions = [r, ...table.regions]
+    return r
+  },
+  async updateRegion(id, fields) {
+    table.regions = table.regions.map(r => r.id === id ? { ...r, ...fields } : r)
+    return table.regions.find(r => r.id === id)
+  },
+  async addPickupPoint(fields) {
+    const p = { id: uid('pu'), ...fields, created_at: new Date().toISOString() }
+    table.pickup_points = [p, ...table.pickup_points]
+    return p
+  },
+  async updatePickupPoint(id, fields) {
+    table.pickup_points = table.pickup_points.map(p => p.id === id ? { ...p, ...fields } : p)
+    return table.pickup_points.find(p => p.id === id)
+  },
+  async addDeliveryPricing(fields) {
+    const p = { id: uid('prc'), ...fields, created_at: new Date().toISOString() }
+    table.delivery_pricing = [p, ...table.delivery_pricing]
+    return p
+  },
+  async updateDeliveryPricing(id, fields) {
+    table.delivery_pricing = table.delivery_pricing.map(p => p.id === id ? { ...p, ...fields } : p)
+    return table.delivery_pricing.find(p => p.id === id)
+  },
+
+  // --- CUSTOMERS ---
+  async getCustomers() { return [...table.customers] },
+  async getCustomer(id) { return table.customers.find(c => c.id === id) || null },
+  async createCustomer(fields) {
+    const c = { id: uid('cus'), ...fields, created_at: new Date().toISOString() }
+    table.customers = [c, ...table.customers]
+    return c
+  },
+  async updateCustomer(id, fields) {
+    table.customers = table.customers.map(c => c.id === id ? { ...c, ...fields } : c)
+    return table.customers.find(c => c.id === id)
+  },
+
+  // --- CART ---
+  async getCart(customerId) {
+    let cart = table.carts.find(c => c.customer_id === customerId)
+    if (!cart) return { items: [] }
+    const items = table.cart_items.filter(i => i.cart_id === cart.id)
+    return { ...cart, items }
+  },
+  async addToCart(customerId, orderId) {
+    let cart = table.carts.find(c => c.customer_id === customerId)
+    if (!cart) {
+      cart = { id: uid('crt'), customer_id: customerId, created_at: new Date().toISOString() }
+      table.carts = [cart, ...table.carts]
+    }
+    const item = { id: uid('ci'), cart_id: cart.id, order_id: orderId, added_at: new Date().toISOString() }
+    table.cart_items = [item, ...table.cart_items]
+    return this.getCart(customerId)
+  },
+  async removeFromCart(customerId, orderId) {
+    const cart = table.carts.find(c => c.customer_id === customerId)
+    if (cart) {
+      table.cart_items = table.cart_items.filter(i => !(i.cart_id === cart.id && i.order_id === orderId))
+    }
+    return this.getCart(customerId)
+  },
+  async clearCart(customerId) {
+    const cart = table.carts.find(c => c.customer_id === customerId)
+    if (cart) {
+      table.cart_items = table.cart_items.filter(i => i.cart_id !== cart.id)
+    }
+    return this.getCart(customerId)
+  },
+
+  // --- AUDIT ---
+  async addAuditLog(entry) {
+    const log = { id: uid('aud'), ...entry, timestamp: new Date().toISOString() }
+    table.audit_logs = [log, ...table.audit_logs]
+    return log
+  },
+  async getAuditLogs(filters = {}) {
+    let logs = [...table.audit_logs]
+    if (filters.resource) logs = logs.filter(l => l.resource === filters.resource)
+    if (filters.resource_id) logs = logs.filter(l => l.resource_id === filters.resource_id)
+    return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
   },
 
   // --- STAFF ---

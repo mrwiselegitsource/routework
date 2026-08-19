@@ -15,7 +15,14 @@ const KEYS = {
   news: `${PREFIX}news`,
   page_views: `${PREFIX}page_views`,
   session: `${PREFIX}session`,
-  seeded: `${PREFIX}seeded_v1`,
+  seeded: `${PREFIX}seeded_v2`,
+  customers: `${PREFIX}customers`,
+  carts: `${PREFIX}carts`,
+  cart_items: `${PREFIX}cart_items`,
+  regions: `${PREFIX}regions`,
+  pickup_points: `${PREFIX}pickup_points`,
+  delivery_pricing: `${PREFIX}delivery_pricing`,
+  audit_logs: `${PREFIX}audit_logs`,
 }
 
 export function uid(prefix = '') {
@@ -51,6 +58,20 @@ export const table = {
   set news(v) { write(KEYS.news, v) },
   get page_views() { return read(KEYS.page_views) },
   set page_views(v) { write(KEYS.page_views, v) },
+  get customers() { return read(KEYS.customers) },
+  set customers(v) { write(KEYS.customers, v) },
+  get carts() { return read(KEYS.carts) },
+  set carts(v) { write(KEYS.carts, v) },
+  get cart_items() { return read(KEYS.cart_items) },
+  set cart_items(v) { write(KEYS.cart_items, v) },
+  get regions() { return read(KEYS.regions) },
+  set regions(v) { write(KEYS.regions, v) },
+  get pickup_points() { return read(KEYS.pickup_points) },
+  set pickup_points(v) { write(KEYS.pickup_points, v) },
+  get delivery_pricing() { return read(KEYS.delivery_pricing) },
+  set delivery_pricing(v) { write(KEYS.delivery_pricing, v) },
+  get audit_logs() { return read(KEYS.audit_logs) },
+  set audit_logs(v) { write(KEYS.audit_logs, v) },
 }
 
 export function getSession() {
@@ -189,7 +210,23 @@ export function seedIfEmpty() {
       created_at: hoursAgo(96),
     },
   ]
-  table.orders = orders
+  const ordersWithSecurity = orders.map((o) => {
+    let pw = ''
+    if (o.order_id === 'RW-DEMO01') pw = 'RW-7K4P-92XM'
+    if (o.order_id === 'RW-DEMO02') pw = 'RW-3F8N-61QR'
+    if (o.order_id === 'RW-DEMO03') pw = 'RW-9B2T-45WK'
+    if (o.order_id === 'RW-DEMO04') pw = 'RW-5M7J-83YP'
+    return {
+      ...o,
+      tracking_protected: true,
+      failed_attempts: 0,
+      locked_until: null,
+      password_created_at: hoursAgo(120),
+      _tracking_password: pw,
+      tracking_password_hash: btoa(pw)
+    }
+  })
+  table.orders = ordersWithSecurity
 
   const events = [
     // RW-DEMO01 — in transit
@@ -270,6 +307,41 @@ export function seedIfEmpty() {
     { id: uid('pv'), path: '/', timestamp: hoursAgo(24), session_id: 'mock-session-4' },
     { id: uid('pv'), path: '/services', timestamp: hoursAgo(48), session_id: 'mock-session-5' },
   ]
+
+  table.customers = []
+  table.carts = []
+  table.cart_items = []
+  table.audit_logs = []
+
+  table.regions = [
+    { id: uid('reg'), name: 'Greater Accra', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Ashanti', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Eastern', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Central', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Western', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Northern', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Upper East', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Upper West', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Volta', active: true, created_at: hoursAgo(200) },
+    { id: uid('reg'), name: 'Bono', active: true, created_at: hoursAgo(200) }
+  ]
+
+  table.pickup_points = [
+    { id: uid('pu'), region_id: table.regions[0].id, name: 'Accra Mall Hub', address: 'Spintex Road, Accra', active: true, created_at: hoursAgo(150) },
+    { id: uid('pu'), region_id: table.regions[0].id, name: 'Osu Branch', address: 'Oxford Street, Osu', active: true, created_at: hoursAgo(150) },
+    { id: uid('pu'), region_id: table.regions[1].id, name: 'Kumasi City Mall', address: 'Asokwa, Kumasi', active: true, created_at: hoursAgo(150) },
+    { id: uid('pu'), region_id: table.regions[3].id, name: 'Cape Coast Hub', address: 'UCC Campus', active: true, created_at: hoursAgo(150) },
+    { id: uid('pu'), region_id: table.regions[4].id, name: 'Takoradi Circle', address: 'Market Circle, Takoradi', active: true, created_at: hoursAgo(150) }
+  ]
+
+  table.delivery_pricing = table.regions.map((r, i) => ({
+    id: uid('prc'),
+    region_id: r.id,
+    base_price_pickup: 15 + (i % 3) * 5,
+    home_delivery_surcharge: 10 + (i % 4) * 5,
+    active: true,
+    created_at: hoursAgo(140)
+  }))
 
   localStorage.setItem(KEYS.seeded, '1')
 }
