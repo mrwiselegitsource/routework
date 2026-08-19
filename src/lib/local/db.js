@@ -82,11 +82,35 @@ export const localDb = {
       added_by: addedBy,
     }
     table.events = [event, ...table.events]
-    // Rule #5: status is a timeline of events, never an overwrite — the
-    // orders row is only a cached copy of the latest event.
+    
     table.orders = table.orders.map((o) =>
       o.order_id === orderId ? { ...o, current_status: status, current_location: location } : o
     )
+
+    // Manual priority: Cancel pending automations if a manual event is added
+    if (table.order_automations) {
+      table.order_automations = table.order_automations.map(a => {
+        if (a.order_id === orderId && a.status === 'pending') {
+          return { ...a, status: 'cancelled' }
+        }
+        return a
+      })
+
+      // Queue new automations for this status
+      if (table.automation_rules) {
+        const activeRules = table.automation_rules.filter(r => r.active && r.trigger_status === status)
+        for (const rule of activeRules) {
+          table.order_automations.push({
+            id: uid('auto'),
+            order_id: orderId,
+            rule_id: rule.id,
+            scheduled_for: new Date(Date.now() + rule.delay_hours * 60 * 60 * 1000).toISOString(),
+            status: 'pending'
+          })
+        }
+      }
+    }
+
     logActivity(addedBy, orderId, 'updated_status')
     return event
   },
@@ -367,6 +391,41 @@ export const localDb = {
     if (filters.resource) logs = logs.filter(l => l.resource === filters.resource)
     if (filters.resource_id) logs = logs.filter(l => l.resource_id === filters.resource_id)
     return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+  },
+
+  // --- AUTOMATIONS ---
+  async getAutomationRules() {
+    return [...table.automation_rules]
+  },
+  async updateAutomationRule(id, fields) {
+    table.automation_rules = table.automation_rules.map(r => r.id === id ? { ...r, ...fields } : r)
+    return table.automation_rules.find(r => r.id === id)
+  },
+  async processAutomations() {
+    const automations = table.order_automations
+    const rules = table.automation_rules
+    const orders = table.orders
+    let processedCount = 0
+    const now = new Date()
+
+    for (const auto of automations) {
+      if (auto.status !== 'pending') continue
+      if (new Date(auto.scheduled_for) <= now) {
+        const rule = rules.find(r => r.id === auto.rule_id)
+        if (!rule || !rule.active) { auto.status = 'skipped'; continue }
+        const order = orders.find(o => o.order_id === auto.order_id)
+        if (!order) { auto.status = 'cancelled'; continue }
+        if (rule.requires_payment && order.payment_status !== 'paid') continue
+        
+        const ev = { id: uid('ev'), order_id: order.order_id, status: rule.action_status, location: rule.action_location, description: rule.action_description, event_time: new Date().toISOString(), added_by: 'system_automation' }
+        table.events = [...table.events, ev]
+        order.current_status = rule.action_status
+        order.current_location = rule.action_location
+        auto.status = 'executed'
+        processedCount++
+      }
+    }
+    return processedCount
   },
 
   // --- STAFF ---

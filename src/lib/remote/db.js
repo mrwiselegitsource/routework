@@ -66,6 +66,14 @@ export const remoteDb = {
     if (error) throw error
     await supabase.from('orders').update({ current_status: status, current_location: location }).eq('order_id', orderId)
     await supabase.from('activity_log').insert({ user_id: addedBy, order_id: orderId, action: 'updated_status' })
+
+    // Trigger automations RPC (mocking the fact that in Supabase this would be a database trigger)
+    try {
+      await supabase.rpc('trigger_automations', { p_order_id: orderId, p_status: status })
+    } catch(err) {
+      console.warn("RPC trigger_automations not available in this mock remote backend yet.", err)
+    }
+
     return data
   },
 
@@ -412,6 +420,25 @@ export const remoteDb = {
     const { data, error } = await query
     if (error) throw error
     return data ?? []
+  },
+
+  // --- AUTOMATIONS ---
+  async getAutomationRules() {
+    const { data, error } = await supabase.from('automation_rules').select('*').order('created_at')
+    if (error) throw error
+    return data ?? []
+  },
+  async updateAutomationRule(id, fields) {
+    const { data, error } = await supabase.from('automation_rules').update(fields).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async processAutomations() {
+    // In a real environment, this would be a Supabase Edge Function or cron job.
+    // For this mock remote backend, we call an RPC function we assume exists,
+    // or we handle it via a manual RPC wrapper. Since we don't have the RPC,
+    // we just return 0 to prevent errors during frontend testing.
+    return 0
   },
 
   // --- STAFF ---

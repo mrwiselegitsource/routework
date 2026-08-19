@@ -11,10 +11,24 @@ import {
 import { auth, backendMode } from '../../lib/db'
 import { useAuth } from '../../context/AuthContext'
 
+import {
+  Map,
+  MapPin,
+  Banknote,
+  Users2,
+  PlayCircle
+} from 'lucide-react'
+
 const ADMIN_LINKS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/orders', label: 'Orders', icon: PackageSearch },
   { to: '/admin/orders/new', label: 'New Order', icon: PlusCircle },
+  { to: '/admin/customers', label: 'Customers', icon: Users2 },
+  { to: '/admin/payments', label: 'Payments', icon: Banknote },
+  { to: '/admin/regions', label: 'Regions', icon: Map, adminOnly: true },
+  { to: '/admin/pickup-points', label: 'Pickup Points', icon: MapPin, adminOnly: true },
+  { to: '/admin/pricing', label: 'Pricing', icon: Banknote, adminOnly: true },
+  { to: '/admin/automations', label: 'Automations', icon: PlayCircle, adminOnly: true },
   { to: '/admin/news', label: 'News', icon: ScrollText },
   { to: '/admin/staff', label: 'Staff', icon: Users, adminOnly: true },
   { to: '/admin/activity', label: 'Activity Log', icon: ScrollText, adminOnly: true },

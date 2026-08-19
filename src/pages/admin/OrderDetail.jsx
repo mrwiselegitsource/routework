@@ -13,7 +13,9 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null)
   const [events, setEvents] = useState([])
   const [media, setMedia] = useState([])
+  const [security, setSecurity] = useState(null)
   const [loading, setLoading] = useState(true)
+  const isAdmin = profile?.role === 'admin'
 
   const [form, setForm] = useState({ status: 'in_transit', location: '', description: '' })
   const [savingEvent, setSavingEvent] = useState(false)
@@ -27,10 +29,11 @@ export default function OrderDetail() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [orderData, eventData, mediaData] = await Promise.all([
+    const [orderData, eventData, mediaData, secData] = await Promise.all([
       db.getOrder(id), 
       db.getTrackingEvents(id),
-      db.getOrderMedia(id)
+      db.getOrderMedia(id),
+      db.getOrderSecurity(id)
     ])
     setOrder(orderData)
     setEditValues({
@@ -40,6 +43,7 @@ export default function OrderDetail() {
     })
     setEvents(eventData)
     setMedia(mediaData)
+    setSecurity(secData)
     setLoading(false)
   }, [id])
 
@@ -51,11 +55,48 @@ export default function OrderDetail() {
       setFormError('Choose a status.')
       return
     }
+    if (EXCEPTION_STATUSES.includes(form.status) && !form.reason) {
+      setFormError('An override reason is required for exception statuses.')
+      return
+    }
+
+    if (order?.current_status && !EXCEPTION_STATUSES.includes(form.status) && !EXCEPTION_STATUSES.includes(order.current_status)) {
+      const currentIndex = STATUS_FLOW.indexOf(order.current_status)
+      const newIndex = STATUS_FLOW.indexOf(form.status)
+      if (newIndex > currentIndex + 1) {
+        if (!window.confirm(`Warning: You are skipping standard tracking steps (from ${statusMeta(order.current_status).label} directly to ${statusMeta(form.status).label}). Are you sure?`)) {
+          return
+        }
+      }
+    }
+
     setSavingEvent(true)
     setFormError(null)
     try {
-      await db.addTrackingEvent(id, form, profile?.id)
-      setForm({ status: form.status, location: '', description: '' })
+      let finalDescription = form.description
+      if (form.reason) {
+        finalDescription = finalDescription ? `${finalDescription} (Reason: ${form.reason})` : `Reason: ${form.reason}`
+      }
+
+      await db.addTrackingEvent(id, { 
+        status: form.status, 
+        location: form.location, 
+        description: finalDescription 
+      }, profile?.id)
+
+      if (form.notify !== false) {
+        // Simulate sending notification
+        console.log(`Sending notification to customer for order ${id} - Status: ${form.status}`)
+        await db.addAuditLog({
+          actor: profile?.id || 'system',
+          action: 'sent_notification',
+          resource: 'orders',
+          resource_id: id,
+          reason: `Notified customer of status change to ${form.status}`
+        })
+      }
+
+      setForm({ status: form.status, location: '', description: '', notify: true, reason: '' })
       await load()
     } catch (err) {
       setFormError(err.message)
@@ -87,6 +128,15 @@ export default function OrderDetail() {
       await db.updatePaymentStatus(id, 'paid', 'MANUAL_CASH_OVERRIDE')
       await load()
     } catch(e) { alert(e.message) }
+  }
+
+  async function handleRegeneratePassword() {
+    if (!window.confirm('Regenerate tracking password? The customer will need the new password to claim the shipment.')) return
+    try {
+      const newPass = await db.regenerateTrackingPassword(id)
+      alert(`New password is: ${newPass}\n\nPlease communicate this to the customer securely.`)
+      await load()
+    } catch(err) { alert(err.message) }
   }
 
   async function handleUploadMedia(e) {
@@ -144,9 +194,10 @@ export default function OrderDetail() {
                 <input type="number" value={editValues.amount_due} onChange={e => setEditValues({...editValues, amount_due: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" />
               </div>
             </div>
-            <button type="submit" disabled={savingEdit} className="mt-4 rounded-md bg-blue-900 px-4 py-2 font-body text-sm font-semibold text-white disabled:opacity-60">
+            <button type="submit" disabled={savingEdit || !isAdmin} className={`mt-4 rounded-md px-4 py-2 font-body text-sm font-semibold text-white ${isAdmin ? 'bg-blue-900 hover:opacity-90' : 'bg-gray-400 cursor-not-allowed'} disabled:opacity-60`}>
               {savingEdit ? 'Saving...' : 'Save Details'}
             </button>
+            {!isAdmin && <p className="text-xs text-gray-500 mt-2">Only administrators can edit order details.</p>}
           </form>
 
           {/* Event history */}
@@ -188,6 +239,18 @@ export default function OrderDetail() {
               <div className="sm:col-span-2">
                 <label htmlFor="description" className="font-body text-xs font-semibold text-[var(--color-ink)]">Description</label>
                 <textarea id="description" rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className="mt-1 w-full rounded-md border px-3 py-2 font-body text-sm border-[var(--color-line)]" placeholder="e.g. Package has arrived in Ghana" />
+              </div>
+              {EXCEPTION_STATUSES.includes(form.status) && (
+                <div className="sm:col-span-2">
+                  <label htmlFor="reason" className="font-body text-xs font-semibold text-red-600">Override Reason (Required for Exceptions)</label>
+                  <input id="reason" type="text" value={form.reason || ''} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} className="mt-1 w-full rounded-md border px-3 py-2 font-body text-sm border-red-200 bg-red-50" placeholder="Reason for this exception status..." required />
+                </div>
+              )}
+              <div className="sm:col-span-2 mt-2">
+                <label className="flex items-center gap-2 font-body text-sm text-[var(--color-ink)] cursor-pointer">
+                  <input type="checkbox" checked={form.notify !== false} onChange={(e) => setForm(f => ({ ...f, notify: e.target.checked }))} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  Notify customer via Email/SMS
+                </label>
               </div>
             </div>
             {formError && <p className="mt-2 font-body text-sm" style={{ color: 'var(--color-status-exception)' }}>{formError}</p>}
@@ -233,7 +296,7 @@ export default function OrderDetail() {
           <div className="rounded-xl border border-[var(--color-line)] bg-white p-6">
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-display text-sm font-bold text-[var(--color-ink)]">Shipment Status</h2>
-              {order.payment_status === 'unpaid' && (
+              {order.payment_status === 'unpaid' && isAdmin && (
                 <button onClick={handleMarkPaid} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold hover:bg-green-200 transition">Mark Paid</button>
               )}
             </div>
@@ -252,6 +315,38 @@ export default function OrderDetail() {
               {order.recipient_region && <div className="flex justify-between"><dt className="text-[var(--color-ink-soft)]">Region</dt><dd className="text-[var(--color-ink)]">{order.recipient_region}</dd></div>}
               {order.recipient_address && <div className="mt-2 text-[var(--color-ink)] bg-gray-50 p-2 rounded-md border border-gray-100">{order.recipient_address}</div>}
             </dl>
+          </div>
+
+          {/* Security Section */}
+          <div className="rounded-xl border border-[var(--color-line)] bg-white p-6">
+            <h2 className="font-display text-sm font-bold text-red-600">Order Security</h2>
+            <div className="mt-3 text-sm text-[var(--color-ink-soft)]">
+              {security?.protected ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-green-700 bg-green-50 p-2 rounded-md font-semibold text-xs border border-green-200">
+                    Protected by Tracking Password
+                  </div>
+                  {security.lockedUntil && new Date(security.lockedUntil) > new Date() ? (
+                    <div className="text-red-600 bg-red-50 p-2 rounded-md font-semibold text-xs border border-red-200">
+                      Currently Locked Out (Too many attempts)
+                    </div>
+                  ) : security.failedAttempts > 0 ? (
+                    <div className="text-orange-600 bg-orange-50 p-2 rounded-md font-semibold text-xs border border-orange-200">
+                      {security.failedAttempts} Failed Claim Attempt(s)
+                    </div>
+                  ) : null}
+                  {isAdmin ? (
+                    <button onClick={handleRegeneratePassword} className="w-full mt-2 bg-red-50 text-red-700 border border-red-200 font-bold px-3 py-2 rounded-md hover:bg-red-100 transition-colors">
+                      Regenerate Password
+                    </button>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-2">Only administrators can regenerate passwords.</p>
+                  )}
+                </div>
+              ) : (
+                <p>No tracking password configured.</p>
+              )}
+            </div>
           </div>
 
         </div>

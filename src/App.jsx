@@ -46,6 +46,12 @@ import OrderDetail from './pages/admin/OrderDetail';
 import AdminNews from './pages/admin/AdminNews';
 import Staff from './pages/admin/Staff';
 import Activity from './pages/admin/Activity';
+import AdminCustomers from './pages/admin/AdminCustomers';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminRegions from './pages/admin/AdminRegions';
+import AdminPickupPoints from './pages/admin/AdminPickupPoints';
+import AdminPricing from './pages/admin/AdminPricing';
+import AdminAutomations from './pages/admin/AdminAutomations';
 
 import Footer from './components/Footer';
 
@@ -117,6 +123,12 @@ function App() {
             <Route path="orders/new" element={<OrderNew />} />
             <Route path="orders/:id" element={<OrderDetail />} />
             <Route path="news" element={<AdminNews />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="payments" element={<AdminPayments />} />
+            <Route path="regions" element={<RequireAuth adminOnly><AdminRegions /></RequireAuth>} />
+            <Route path="pickup-points" element={<RequireAuth adminOnly><AdminPickupPoints /></RequireAuth>} />
+            <Route path="pricing" element={<RequireAuth adminOnly><AdminPricing /></RequireAuth>} />
+            <Route path="automations" element={<RequireAuth adminOnly><AdminAutomations /></RequireAuth>} />
             <Route path="staff" element={<RequireAuth adminOnly><Staff /></RequireAuth>} />
             <Route path="activity" element={<RequireAuth adminOnly><Activity /></RequireAuth>} />
           </Route>

@@ -43,9 +43,12 @@ export default function Navbar() {
           <button className="text-gray-700 hover:text-orange-500 transition-colors">
             <Search size={20} />
           </button>
-          <Link to="/admin" className="text-gray-700 hover:text-orange-500 transition-colors block">
-            <User size={20} />
-          </Link>
+          
+          <div className="hidden md:flex items-center gap-3 border-l border-gray-200 pl-4">
+            <Link to="/login" className="text-[#0f172a] font-semibold text-sm hover:text-[#0033a0] transition-colors">Sign In</Link>
+            <Link to="/signup" className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors">Create Account</Link>
+          </div>
+
           <button 
             className="lg:hidden text-gray-700 hover:text-orange-500 transition-colors ml-2"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -64,8 +67,12 @@ export default function Navbar() {
           <Link to="/news" className="text-[#0f172a] font-semibold hover:text-[#0033a0] transition-colors pb-2 border-b border-gray-50">News</Link>
           <Link to="/rti" className="text-[#0f172a] font-semibold hover:text-[#0033a0] transition-colors pb-2 border-b border-gray-50">Corporate Information</Link>
           <Link to="/careers" className="text-[#0f172a] font-semibold hover:text-[#0033a0] transition-colors pb-2 border-b border-gray-50">Careers</Link>
+          <div className="flex flex-col gap-2 mt-2">
+            <Link to="/login" className="bg-gray-100 text-[#0f172a] font-bold text-center px-4 py-3 rounded-xl">Sign In</Link>
+            <Link to="/signup" className="bg-orange-500 text-white font-bold text-center px-4 py-3 rounded-xl">Create Account</Link>
+          </div>
           <Link to="/track" className="bg-[#0033a0] text-white font-bold text-center px-4 py-3 rounded-xl mt-2">Track Parcel</Link>
-          <Link to="/admin" className="text-orange-500 font-bold hover:text-orange-600 transition-colors mt-2 text-center">Admin Dashboard</Link>
+          <Link to="/admin" className="text-gray-400 font-bold hover:text-gray-500 transition-colors mt-2 text-center text-sm">Admin Dashboard</Link>
         </div>
       )}
     </nav>

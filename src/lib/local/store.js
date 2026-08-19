@@ -23,6 +23,8 @@ const KEYS = {
   pickup_points: `${PREFIX}pickup_points`,
   delivery_pricing: `${PREFIX}delivery_pricing`,
   audit_logs: `${PREFIX}audit_logs`,
+  automation_rules: `${PREFIX}automation_rules`,
+  order_automations: `${PREFIX}order_automations`,
 }
 
 export function uid(prefix = '') {
@@ -72,6 +74,10 @@ export const table = {
   set delivery_pricing(v) { write(KEYS.delivery_pricing, v) },
   get audit_logs() { return read(KEYS.audit_logs) },
   set audit_logs(v) { write(KEYS.audit_logs, v) },
+  get automation_rules() { return read(KEYS.automation_rules) },
+  set automation_rules(v) { write(KEYS.automation_rules, v) },
+  get order_automations() { return read(KEYS.order_automations) },
+  set order_automations(v) { write(KEYS.order_automations, v) },
 }
 
 export function getSession() {
@@ -312,6 +318,32 @@ export function seedIfEmpty() {
   table.carts = []
   table.cart_items = []
   table.audit_logs = []
+  table.order_automations = []
+
+  table.automation_rules = [
+    {
+      id: uid('rule'),
+      trigger_status: 'order_confirmed',
+      delay_hours: 12,
+      action_status: 'in_transit',
+      action_location: 'Automated Hub',
+      action_description: 'Auto-transitioned by automation engine.',
+      active: true,
+      requires_payment: false,
+      created_at: hoursAgo(200)
+    },
+    {
+      id: uid('rule'),
+      trigger_status: 'arrived_destination',
+      delay_hours: 4,
+      action_status: 'customs_clearance',
+      action_location: 'Kotoka customs bay',
+      action_description: 'Auto-transitioned to customs clearance.',
+      active: true,
+      requires_payment: false,
+      created_at: hoursAgo(200)
+    }
+  ]
 
   table.regions = [
     { id: uid('reg'), name: 'Greater Accra', active: true, created_at: hoursAgo(200) },
