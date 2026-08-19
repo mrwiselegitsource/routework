@@ -6,6 +6,7 @@ import Timeline from '../components/tracking/Timeline';
 import DetailsPanel from '../components/tracking/DetailsPanel';
 import ClaimGate from '../components/tracking/ClaimGate';
 import MediaGallery from '../components/tracking/MediaGallery';
+import GlobalNetwork from '../components/tracking/GlobalNetwork';
 import { db } from '../lib/db';
 
 export default function Track() {
@@ -132,7 +133,7 @@ export default function Track() {
   return (
     <div className="bg-gray-50 min-h-screen pb-24">
       {/* Search Header */}
-      <div className="relative pt-16 pb-32 px-4 overflow-hidden">
+      <div className="relative pt-16 pb-24 px-4 overflow-hidden">
         <div className="absolute inset-0">
           <img 
             src="/images/track-hero.jpg" 
@@ -143,29 +144,34 @@ export default function Track() {
           <div className="hidden w-full h-full bg-[#0033a0] flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
             Missing Image: public/images/track-hero.jpg
           </div>
-          <div className="absolute inset-0 bg-blue-900/80 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-[#001b57]/80 backdrop-blur-[2px]"></div>
         </div>
         <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <span className="text-orange-500 font-bold tracking-widest uppercase text-sm mb-4 block">LIVE UPDATES</span>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-8">Track & Trace</h1>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto font-light mb-8">
+          <span className="text-orange-500 font-bold tracking-widest uppercase text-sm mb-4 block animate-[fadeIn_0.5s_ease-out]">LIVE UPDATES</span>
+          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-6 animate-[fadeIn_0.7s_ease-out]">Track & Trace</h1>
+          <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto font-light animate-[fadeIn_0.9s_ease-out]">
             Monitor the status and location of your shipments in real-time.
           </p>
-          
-          <form onSubmit={handleSearch} className="max-w-2xl mx-auto relative group">
+        </div>
+      </div>
+
+      {/* Floating Tracking Bar */}
+      <div className="container mx-auto px-4 relative z-20 -mt-10 mb-12 animate-[fadeIn_1.1s_ease-out]">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-4 md:p-6 border border-gray-100">
+          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
             <input 
               type="text" 
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Enter Tracking Number (e.g. RW-DEMO01)" 
-              className="w-full pl-6 pr-40 py-5 rounded-2xl text-lg border-2 border-transparent focus:outline-none focus:border-orange-500 shadow-xl transition-all"
+              className="flex-1 px-6 py-5 rounded-xl text-lg text-gray-800 bg-gray-50 border-2 border-transparent focus:bg-white focus:outline-none focus:border-orange-500 transition-all shadow-inner"
             />
             <button 
               type="submit"
               disabled={isLoading}
-              className="absolute right-2 top-2 bottom-2 bg-orange-500 text-white font-bold px-8 rounded-xl hover:bg-orange-600 transition-colors flex items-center disabled:opacity-70"
+              className="bg-orange-500 text-white font-bold px-8 py-5 rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center disabled:opacity-70 shadow-lg shadow-orange-500/30 min-w-[160px]"
             >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Search className="w-5 h-5 mr-2 hidden sm:block" />}
+              {isLoading ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : <Search className="w-6 h-6 mr-2" />}
               {isLoading ? 'Searching...' : 'Track'}
             </button>
           </form>
@@ -173,10 +179,14 @@ export default function Track() {
       </div>
 
       {/* Main Content Area */}
-      <div className="container mx-auto max-w-4xl px-4 -mt-16 relative z-10">
+      <div className="container mx-auto max-w-4xl px-4 relative z-20">
         
+        {!order && !notFound && (
+          <GlobalNetwork />
+        )}
+
         {notFound && (
-          <div className="bg-white rounded-3xl shadow-xl p-10 text-center border border-gray-100">
+          <div className="bg-white rounded-3xl shadow-xl p-10 text-center border border-gray-100 mt-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-2">No shipment found</h3>
             <p className="text-gray-500">We couldn't find any shipment matching '{searchInput}'. Please double-check it with the sender and try again.</p>
           </div>

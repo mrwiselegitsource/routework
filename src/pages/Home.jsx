@@ -1,6 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import Hero from '../components/Hero';
+import TrackingBar from '../components/TrackingBar';
 import CorporateSolutions from '../components/CorporateSolutions';
 import BusinessSolutions from '../components/BusinessSolutions';
 import Location from '../components/Location';
@@ -53,7 +54,12 @@ export default function Home() {
       </Helmet>
       
       <Hero />
-      <CorporateSolutions />
+      <TrackingBar />
+      
+      {/* Adjust CorporateSolutions margin top since TrackingBar is floating */}
+      <div className="-mt-12">
+        <CorporateSolutions />
+      </div>
       <BusinessSolutions />
       <Testimonials />
       <NewsSnippet />

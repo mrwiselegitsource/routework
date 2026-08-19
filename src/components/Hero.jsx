@@ -37,15 +37,10 @@ export default function Hero() {
             Whether local or international, we ensure safe and timely deliveries. Track your shipments, enjoy express courier services, and experience seamless postal solutions tailored to your needs.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 mb-12">
-            <Link to="/about" className="inline-flex bg-orange-500 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all duration-300 items-center justify-center group">
-              Learn About Us
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link to="/track" className="inline-flex bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white hover:text-blue-900 font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 items-center justify-center">
-              Track Parcel
-            </Link>
-          </div>
+          <Link to="/about" className="inline-flex bg-orange-500 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all duration-300 items-center justify-center group mb-12">
+            Learn About Us
+            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Link>
 
           {/* Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-white/20 pt-8">
