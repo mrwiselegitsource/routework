@@ -1,0 +1,97 @@
+import React from 'react';
+import { Routes, Route, Outlet, Link } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { Package } from 'lucide-react';
+import TrackingProvider from './components/TrackingProvider';
+import Topbar from './components/Topbar';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Services from './pages/Services';
+import BusinessSolutionsPage from './pages/BusinessSolutionsPage';
+import RTI from './pages/RTI';
+import Contact from './pages/Contact';
+import Track from './pages/Track';
+import About from './pages/About';
+import Careers from './pages/Careers';
+import News from './pages/News';
+import NotFound from './pages/NotFound';
+import ThankYou from './pages/ThankYou';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+
+// Admin imports
+import RequireAuth from './components/auth/RequireAuth';
+import AdminLayout from './components/layout/AdminLayout';
+import Login from './pages/admin/Login';
+import Dashboard from './pages/admin/Dashboard';
+import Orders from './pages/admin/Orders';
+import OrderNew from './pages/admin/OrderNew';
+import OrderDetail from './pages/admin/OrderDetail';
+import AdminNews from './pages/admin/AdminNews';
+import Staff from './pages/admin/Staff';
+import Activity from './pages/admin/Activity';
+
+import Footer from './components/Footer';
+
+function PublicAppLayout() {
+  return (
+    <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col relative pb-16 md:pb-0">
+      <Topbar />
+      <Navbar />
+      <main className="flex-1 animate-[fadeIn_0.8s_ease-out]">
+        <Outlet />
+      </main>
+      <Footer />
+      
+      {/* Sticky Mobile CTA */}
+      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 p-3 flex justify-center">
+        <Link 
+          to="/track" 
+          className="bg-orange-500 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center w-full shadow-lg hover:bg-orange-600 transition-colors"
+        >
+          <Package className="mr-2" size={20} />
+          Track Your Parcel
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <HelmetProvider>
+      <TrackingProvider>
+        <Routes>
+          {/* Public Facing Routes */}
+          <Route element={<PublicAppLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/businesssolutions" element={<BusinessSolutionsPage />} />
+            <Route path="/rti" element={<RTI />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/track" element={<Track />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/thank-you" element={<ThankYou />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+
+          {/* Admin Panel Routes */}
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
+            <Route index element={<Dashboard />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="orders/new" element={<OrderNew />} />
+            <Route path="orders/:id" element={<OrderDetail />} />
+            <Route path="news" element={<AdminNews />} />
+            <Route path="staff" element={<RequireAuth adminOnly><Staff /></RequireAuth>} />
+            <Route path="activity" element={<RequireAuth adminOnly><Activity /></RequireAuth>} />
+          </Route>
+        </Routes>
+      </TrackingProvider>
+    </HelmetProvider>
+  );
+}
+
+export default App;

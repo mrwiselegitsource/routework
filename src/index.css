@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand */
+  --color-brand-purple: #4D148C;
+  --color-brand-purple-deep: #350D63;
+  --color-brand-orange: #FF6600;
+  --color-brand-orange-deep: #D95700;
+
+  /* Status colors (Section 9 of the build guide) */
+  --color-status-pending: #B45309;   /* amber — awaiting/in progress */
+  --color-status-done: #15803D;      /* green — completed/delivered/paid */
+  --color-status-final: #4D148C;     /* purple — arranged/final */
+  --color-status-exception: #B91C1C; /* red — exceptions */
+
+  /* Neutrals */
+  --color-ink: #16131C;
+  --color-ink-soft: #4B4655;
+  --color-paper: #FBFAFC;
+  --color-line: #E4E0EA;
+
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-orange);
+  outline-offset: 2px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
