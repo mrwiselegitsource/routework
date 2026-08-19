@@ -53,7 +53,7 @@ export default function Footer() {
               <li><Link to="/careers" className="text-gray-300 hover:text-white transition-colors text-sm">Working at Ghana Post</Link></li>
               <li><Link to="/privacy" className="text-gray-300 hover:text-white transition-colors text-sm">Privacy Policy</Link></li>
               <li><Link to="/news" className="text-gray-300 hover:text-white transition-colors text-sm">News & Updates</Link></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors text-sm">Terms & Conditions</a></li>
+              <li><Link to="/terms" className="text-gray-300 hover:text-white transition-colors text-sm">Terms & Conditions</Link></li>
             </ul>
           </div>
 

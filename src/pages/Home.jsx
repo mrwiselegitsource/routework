@@ -4,6 +4,8 @@ import Hero from '../components/Hero';
 import TrackingBar from '../components/TrackingBar';
 import CorporateSolutions from '../components/CorporateSolutions';
 import BusinessSolutions from '../components/BusinessSolutions';
+import DeliveryStandards from '../components/DeliveryStandards';
+import Partners from '../components/Partners';
 import Location from '../components/Location';
 import Testimonials from '../components/Testimonials';
 import NewsSnippet from '../components/NewsSnippet';
@@ -61,6 +63,8 @@ export default function Home() {
         <CorporateSolutions />
       </div>
       <BusinessSolutions />
+      <DeliveryStandards />
+      <Partners />
       <Testimonials />
       <NewsSnippet />
       <Location />

@@ -17,6 +17,7 @@ import News from './pages/News';
 import NotFound from './pages/NotFound';
 import ThankYou from './pages/ThankYou';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 
 // Admin imports
 import RequireAuth from './components/auth/RequireAuth';
@@ -74,6 +75,7 @@ function App() {
             <Route path="/news" element={<News />} />
             <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<NotFound />} />
           </Route>
 
