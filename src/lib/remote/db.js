@@ -188,12 +188,43 @@ export const remoteDb = {
   },
 
   async verifyTrackingPassword(trackingNumber, password) {
-    const { data, error } = await supabase.rpc('verify_tracking_password', { 
-      p_order_id: trackingNumber, 
-      p_password: password 
-    })
+    // Fetch the order's security fields directly
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select('tracking_protected, tracking_password_hash, failed_attempts, locked_until')
+      .eq('order_id', trackingNumber)
+      .maybeSingle()
+
     if (error) throw error
-    return data
+    if (!order) return { success: false, locked: false, remainingAttempts: 0 }
+
+    // Check if currently locked
+    if (order.locked_until && new Date(order.locked_until) > new Date()) {
+      return { success: false, locked: true, lockedUntil: order.locked_until }
+    }
+
+    // Hash the submitted password using Web Crypto (SHA-256 → hex)
+    const encoder = new TextEncoder()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(password))
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+
+    if (order.tracking_password_hash === hashHex) {
+      // Success — reset failed attempts
+      await supabase.from('orders').update({ failed_attempts: 0, locked_until: null }).eq('order_id', trackingNumber)
+      return { success: true }
+    }
+
+    // Wrong password — increment failed attempts
+    const newAttempts = (order.failed_attempts || 0) + 1
+    const updates = { failed_attempts: newAttempts }
+    if (newAttempts >= 3) {
+      updates.locked_until = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+      await supabase.from('orders').update(updates).eq('order_id', trackingNumber)
+      return { success: false, locked: true, lockedUntil: updates.locked_until }
+    }
+
+    await supabase.from('orders').update(updates).eq('order_id', trackingNumber)
+    return { success: false, locked: false, remainingAttempts: 3 - newAttempts }
   },
 
   async getOrderSecurity(orderId) {

@@ -36,6 +36,7 @@ export default function Track() {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [step, setStep] = useState(STEP.SEARCH);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   // Data
   const [orderInfo, setOrderInfo] = useState(null);    // Security/basic info
@@ -59,6 +60,7 @@ export default function Track() {
 
     setIsLoading(true);
     setTrackingNumber(id);
+    setErrorMsg(null);
 
     try {
       // First check if the order exists and get security info
@@ -80,6 +82,7 @@ export default function Track() {
       }
     } catch (err) {
       console.error('Tracking lookup failed:', err);
+      setErrorMsg('Something went wrong. Please check your tracking number and try again.');
       setStep(STEP.NOT_FOUND);
     } finally {
       setIsLoading(false);
@@ -263,8 +266,19 @@ export default function Track() {
         {/* NOT FOUND state */}
         {step === STEP.NOT_FOUND && (
           <div className="bg-white rounded-3xl shadow-xl p-10 text-center border border-gray-100 mt-8 animate-[fadeIn_0.5s_ease-out]">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-red-400" />
+            </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">Shipment not found</h3>
-            <p className="text-gray-500">We couldn't find any shipment matching '{searchInput}'. Please double-check it with the sender and try again.</p>
+            <p className="text-gray-500 mb-4">
+              {errorMsg || `We couldn't find any shipment matching '${searchInput}'. Please double-check it with the sender and try again.`}
+            </p>
+            <button
+              onClick={() => { setStep(STEP.SEARCH); setSearchInput(''); setErrorMsg(null); }}
+              className="bg-[#0033a0] text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-800 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         )}
 
