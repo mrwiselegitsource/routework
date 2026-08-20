@@ -146,7 +146,8 @@ export const remoteDb = {
   },
 
   async addOrderMedia(orderId, mediaType, storagePath) {
-    const { data, error } = await supabase.from('order_media').insert({ order_id: orderId, media_type: mediaType, storage_path: storagePath }).select().single()
+    const id = `${orderId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    const { data, error } = await supabase.from('order_media').insert({ id, order_id: orderId, media_type: mediaType, storage_path: storagePath }).select().single()
     if (error) throw error
     return data
   },
