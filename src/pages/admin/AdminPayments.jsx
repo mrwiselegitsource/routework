@@ -68,7 +68,7 @@ export default function AdminPayments() {
                     <div className="text-sm font-medium text-gray-900">{o.recipient_name || '—'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-mono text-gray-900">GH₵ {(o.delivery_fee || 0).toFixed(2)}</div>
+                    <div className="text-sm font-mono text-gray-900">GH₵ {(parseFloat(o.delivery_fee) || 0).toFixed(2)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {o.payment_status === 'paid' ? (

@@ -221,14 +221,14 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
           <span className="text-sm font-semibold text-gray-600 flex items-center gap-2">
             Delivery Fee
           </span>
-          <span className="font-bold text-gray-900">GH₵ {deliveryFee.toFixed(2)}</span>
+          <span className="font-bold text-gray-900">GH₵ {(parseFloat(deliveryFee) || 0).toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between border-t border-gray-100 pt-2 mt-1">
           <span className="text-sm font-bold text-gray-900 flex items-center gap-2">
             Total Due Today
           </span>
           <span className="font-bold text-[#0033a0] text-lg">
-            GH₵ {((paymentStatus === 'Unpaid' ? parseFloat(amountDue) : 0) + deliveryFee).toFixed(2)}
+            GH₵ {((paymentStatus === 'Unpaid' ? (parseFloat(amountDue) || 0) : 0) + (parseFloat(deliveryFee) || 0)).toFixed(2)}
           </span>
         </div>
       </div>
