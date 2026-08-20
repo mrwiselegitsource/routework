@@ -82,60 +82,58 @@ function PublicAppLayout() {
 function App() {
   return (
     <HelmetProvider>
-      <CustomerAuthProvider>
-        <CartProvider>
-          <TrackingProvider>
-            <Routes>
-          {/* Public Facing Routes */}
-          <Route element={<PublicAppLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/businesssolutions" element={<BusinessSolutionsPage />} />
-            <Route path="/rti" element={<RTI />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/track" element={<Track />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/thank-you" element={<ThankYou />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
+      <CartProvider>
+        <TrackingProvider>
+          <Routes>
+        {/* Public Facing Routes */}
+        <Route element={<PublicAppLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/businesssolutions" element={<BusinessSolutionsPage />} />
+          <Route path="/rti" element={<RTI />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/track" element={<Track />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
 
-          {/* Customer Auth Routes */}
-          <Route path="/signup" element={<CustomerSignup />} />
-          <Route path="/login" element={<CustomerLogin />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* Customer Auth Routes */}
+        <Route path="/signup" element={<CustomerSignup />} />
+        <Route path="/login" element={<CustomerLogin />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Customer Protected Routes */}
-          <Route element={<RequireCustomerAuth><CustomerLayout /></RequireCustomerAuth>}>
-            <Route path="/account" element={<CustomerAccount />} />
-            <Route path="/account/orders" element={<CustomerOrders />} />
-            <Route path="/cart" element={<Cart />} />
-          </Route>
+        {/* Customer Protected Routes */}
+        <Route element={<RequireCustomerAuth><CustomerLayout /></RequireCustomerAuth>}>
+          <Route path="/account" element={<CustomerAccount />} />
+          <Route path="/account/orders" element={<CustomerOrders />} />
+          <Route path="/cart" element={<Cart />} />
+        </Route>
 
-          {/* Admin Panel Routes */}
-          <Route path="/admin/login" element={<Login />} />
-          <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
-            <Route index element={<Dashboard />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="orders/new" element={<OrderNew />} />
-            <Route path="orders/:id" element={<OrderDetail />} />
-            <Route path="news" element={<AdminNews />} />
-            <Route path="customers" element={<AdminCustomers />} />
-            <Route path="payments" element={<AdminPayments />} />
-            <Route path="regions" element={<RequireAuth adminOnly><AdminRegions /></RequireAuth>} />
-            <Route path="pickup-points" element={<RequireAuth adminOnly><AdminPickupPoints /></RequireAuth>} />
-            <Route path="pricing" element={<RequireAuth adminOnly><AdminPricing /></RequireAuth>} />
-            <Route path="automations" element={<RequireAuth adminOnly><AdminAutomations /></RequireAuth>} />
-            <Route path="staff" element={<RequireAuth adminOnly><Staff /></RequireAuth>} />
-            <Route path="activity" element={<RequireAuth adminOnly><Activity /></RequireAuth>} />
-          </Route>
-          </Routes>
-        </TrackingProvider>
-        </CartProvider>
-      </CustomerAuthProvider>
+        {/* Admin Panel Routes */}
+        <Route path="/admin/login" element={<Login />} />
+        <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
+          <Route index element={<Dashboard />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="orders/new" element={<OrderNew />} />
+          <Route path="orders/:id" element={<OrderDetail />} />
+          <Route path="news" element={<AdminNews />} />
+          <Route path="customers" element={<AdminCustomers />} />
+          <Route path="payments" element={<AdminPayments />} />
+          <Route path="regions" element={<RequireAuth adminOnly><AdminRegions /></RequireAuth>} />
+          <Route path="pickup-points" element={<RequireAuth adminOnly><AdminPickupPoints /></RequireAuth>} />
+          <Route path="pricing" element={<RequireAuth adminOnly><AdminPricing /></RequireAuth>} />
+          <Route path="automations" element={<RequireAuth adminOnly><AdminAutomations /></RequireAuth>} />
+          <Route path="staff" element={<RequireAuth adminOnly><Staff /></RequireAuth>} />
+          <Route path="activity" element={<RequireAuth adminOnly><Activity /></RequireAuth>} />
+        </Route>
+        </Routes>
+      </TrackingProvider>
+      </CartProvider>
     </HelmetProvider>
   );
 }

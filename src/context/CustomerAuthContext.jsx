@@ -1,8 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { auth, backendMode } from '../lib/db' // Wait, local/remote auth export might need checking. 
-
-// The auth object exported from lib/db needs to be updated to expose the customer methods.
-// Let me just write the file assuming db.js exports `auth` which has customer methods.
+import { auth } from '../lib/db'
 
 const CustomerAuthContext = createContext({ session: null, profile: null, loading: true })
 
@@ -11,46 +8,57 @@ export function CustomerAuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // 1. Load initial session on mount
   useEffect(() => {
     let active = true
 
     auth.getSession().then(({ data }) => {
       if (!active) return
-      // We only care about customer sessions here, but in local mode, session.user_type determines it.
-      // In Supabase, we might just fetch the customer profile to verify.
-      setSession(data.session ?? null)
-      setLoading(false)
+      setSession(data?.session ?? null)
+      // If no session, we're done loading
+      if (!data?.session) setLoading(false)
     })
 
+    // Listen for login/logout events
     const { data: listener } = auth.onCustomerAuthStateChange((newSession) => {
       setSession(newSession)
+      // If signed out, clear profile immediately and stop loading
+      if (!newSession) {
+        setProfile(null)
+        setLoading(false)
+      }
     })
 
     return () => {
       active = false
-      listener.subscription.unsubscribe()
+      listener?.subscription?.unsubscribe()
     }
   }, [])
 
+  // 2. When session changes, load the customer profile
   useEffect(() => {
     if (!session?.user) {
       setProfile(null)
+      setLoading(false)
       return
     }
+
     let active = true
     auth.getCustomerProfile(session.user.id).then(({ data, error }) => {
       if (!active) return
       if (error) {
-        console.warn('[customer auth] could not load profile', error.message)
-        // If they aren't a customer (e.g. staff logged in), this will fail. That's fine.
-        setProfile(null)
-        return
+        // Profile might not exist yet (new signup) or they're a staff user — 
+        // set profile to a minimal object so they aren't stuck in a login loop
+        console.warn('[customer auth] profile not found:', error.message)
+        // Create a minimal profile so session is still considered valid
+        setProfile({ id: session.user.id, email: session.user.email, name: session.user.email })
+      } else {
+        setProfile(data)
       }
-      setProfile(data)
+      setLoading(false)
     })
-    return () => {
-      active = false
-    }
+
+    return () => { active = false }
   }, [session])
 
   return (
