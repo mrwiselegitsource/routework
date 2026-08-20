@@ -188,7 +188,7 @@ export const remoteDb = {
   },
 
   async verifyTrackingPassword(trackingNumber, password) {
-    // Fetch the order's security fields directly
+    // Fetch the order's security fields (requires anon SELECT policy on orders)
     const { data: order, error } = await supabase
       .from('orders')
       .select('tracking_protected, tracking_password_hash, failed_attempts, locked_until')
@@ -203,27 +203,22 @@ export const remoteDb = {
       return { success: false, locked: true, lockedUntil: order.locked_until }
     }
 
-    // Hash the submitted password using Web Crypto (SHA-256 → hex)
+    // Hash the entered password using Web Crypto API (SHA-256 → hex)
     const encoder = new TextEncoder()
     const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(password))
     const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
 
-    if (order.tracking_password_hash === hashHex) {
-      // Success — reset failed attempts
-      await supabase.from('orders').update({ failed_attempts: 0, locked_until: null }).eq('order_id', trackingNumber)
-      return { success: true }
-    }
+    const success = order.tracking_password_hash === hashHex
 
-    // Wrong password — increment failed attempts
+    // Record the attempt via SECURITY DEFINER function (bypasses RLS for the UPDATE)
+    await supabase.rpc('record_tracking_attempt', { p_order_id: trackingNumber, p_success: success })
+
+    if (success) return { success: true }
+
     const newAttempts = (order.failed_attempts || 0) + 1
-    const updates = { failed_attempts: newAttempts }
     if (newAttempts >= 3) {
-      updates.locked_until = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-      await supabase.from('orders').update(updates).eq('order_id', trackingNumber)
-      return { success: false, locked: true, lockedUntil: updates.locked_until }
+      return { success: false, locked: true, lockedUntil: new Date(Date.now() + 15 * 60 * 1000).toISOString() }
     }
-
-    await supabase.from('orders').update(updates).eq('order_id', trackingNumber)
     return { success: false, locked: false, remainingAttempts: 3 - newAttempts }
   },
 
