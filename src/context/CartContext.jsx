@@ -23,7 +23,7 @@ export function CartProvider({ children }) {
       // In a real app, this might be a JOIN query, but here we'll map and fetch.
       const enrichedItems = await Promise.all(
         (cartData.items || []).map(async (item) => {
-          const order = await db.getPublicOrder(item.order_id);
+          const order = await db.getOrder(item.order_id);
           const media = await db.getOrderMedia(item.order_id);
           return {
             ...item,

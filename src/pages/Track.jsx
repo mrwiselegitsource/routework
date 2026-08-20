@@ -111,7 +111,7 @@ export default function Track() {
   const loadFullOrder = async (id) => {
     const oid = id || trackingNumber;
     try {
-      const orderData = await db.getPublicOrder(oid);
+      const orderData = await db.getOrder(oid);
       if (!orderData) {
         setStep(STEP.NOT_FOUND);
         return;
@@ -294,9 +294,21 @@ export default function Track() {
             <StatusHeader
               trackingId={order.order_id}
               status={(order.current_status || 'pending').replace(/_/g, ' ')}
-              location={order.current_location || 'Pending update'}
+              location={isClaimed ? (order.current_location || 'Pending update') : 'Origin Port (Pending Delivery Details)'}
               eta={order.estimated_delivery || 'To be updated'}
             />
+
+            {!isClaimed && (
+              <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-8 flex items-start gap-3">
+                <AlertTriangle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-red-800 font-bold">Action Required: Shipment at Origin</h4>
+                  <p className="text-red-700 text-sm mt-1">
+                    This shipment is currently held at our origin facility. To arrange delivery to your location, please provide your delivery details and complete the shipping payment below.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col lg:flex-row gap-8">
               <div className="w-full lg:w-1/2">
@@ -308,9 +320,9 @@ export default function Track() {
 
                 <DetailsPanel
                   trackingId={order.order_id}
-                  origin={order.sender_country || 'Not specified'}
+                  origin={order.sender_country || 'Origin Port'}
                   destination="Ghana"
-                  location={order.current_location || 'Pending update'}
+                  location={isClaimed ? (order.current_location || 'Pending update') : 'Origin Port (Pending Delivery Details)'}
                   method="Standard Logistics"
                   eta={order.estimated_delivery || 'To be updated'}
                   paymentStatus={order.payment_status}
