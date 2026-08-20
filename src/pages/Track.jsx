@@ -293,7 +293,7 @@ export default function Track() {
 
             <StatusHeader
               trackingId={order.order_id}
-              status={order.current_status.replace(/_/g, ' ')}
+              status={(order.current_status || 'pending').replace(/_/g, ' ')}
               location={order.current_location || 'Pending update'}
               eta={order.estimated_delivery || 'To be updated'}
             />

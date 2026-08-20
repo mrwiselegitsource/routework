@@ -38,7 +38,7 @@ export default function DetailsPanel({ trackingId, origin, destination, location
         <div className="md:col-span-2 pt-4 mt-2 border-t border-gray-100 flex items-center justify-between">
           <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">Payment Status</p>
           <span className={`px-4 py-1.5 rounded-full text-sm font-bold tracking-wide ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            {paymentStatus.toUpperCase()}
+            {(paymentStatus || 'Pending').toUpperCase()}
           </span>
         </div>
       </div>
