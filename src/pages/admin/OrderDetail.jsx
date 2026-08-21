@@ -39,7 +39,8 @@ export default function OrderDetail() {
     setEditValues({
       item_name: orderData?.item_name || '',
       description: orderData?.description || '',
-      amount_due: orderData?.amount_due || 0
+      amount_due: orderData?.amount_due || 0,
+      delivery_duration_hours: orderData?.delivery_duration_hours || ''
     })
     setEvents(eventData)
     setMedia(mediaData)
@@ -63,10 +64,9 @@ export default function OrderDetail() {
     if (order?.current_status && !EXCEPTION_STATUSES.includes(form.status) && !EXCEPTION_STATUSES.includes(order.current_status)) {
       const currentIndex = STATUS_FLOW.indexOf(order.current_status)
       const newIndex = STATUS_FLOW.indexOf(form.status)
-      if (newIndex > currentIndex + 1) {
-        if (!window.confirm(`Warning: You are skipping standard tracking steps (from ${statusMeta(order.current_status).label} directly to ${statusMeta(form.status).label}). Are you sure?`)) {
-          return
-        }
+      if (newIndex > currentIndex + 1 || newIndex < currentIndex) {
+        setFormError(`You must strictly follow the tracking sequence. The next status is ${statusMeta(STATUS_FLOW[currentIndex + 1] || order.current_status).label}.`);
+        return
       }
     }
 
@@ -112,7 +112,8 @@ export default function OrderDetail() {
       await db.updateOrder(id, {
         item_name: editValues.item_name,
         description: editValues.description,
-        amount_due: Number(editValues.amount_due)
+        amount_due: Number(editValues.amount_due),
+        delivery_duration_hours: editValues.delivery_duration_hours ? Number(editValues.delivery_duration_hours) : null
       })
       await load()
     } catch (err) {
@@ -193,6 +194,10 @@ export default function OrderDetail() {
                 <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Amount Due ({order.currency})</label>
                 <input type="number" value={editValues.amount_due} onChange={e => setEditValues({...editValues, amount_due: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" />
               </div>
+              <div>
+                <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Automated Timeframe (Hours)</label>
+                <input type="number" value={editValues.delivery_duration_hours} onChange={e => setEditValues({...editValues, delivery_duration_hours: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" placeholder="e.g. 48 for 2 days" />
+              </div>
             </div>
             <button type="submit" disabled={savingEdit || !isAdmin} className={`mt-4 rounded-md px-4 py-2 font-body text-sm font-semibold text-white ${isAdmin ? 'bg-blue-900 hover:opacity-90' : 'bg-gray-400 cursor-not-allowed'} disabled:opacity-60`}>
               {savingEdit ? 'Saving...' : 'Save Details'}
@@ -227,9 +232,20 @@ export default function OrderDetail() {
               <div>
                 <label htmlFor="status" className="font-body text-xs font-semibold text-[var(--color-ink)]">Status</label>
                 <select id="status" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))} className="mt-1 w-full rounded-md border px-3 py-2 font-body text-sm border-[var(--color-line)]">
-                  {ALL_STATUSES.map((s) => (
-                    <option key={s} value={s}>{statusMeta(s).label}</option>
-                  ))}
+                  {ALL_STATUSES.map((s) => {
+                    // Restrict dropdown options to current, next, or exceptions
+                    let disabled = false;
+                    if (order?.current_status && !EXCEPTION_STATUSES.includes(s) && !EXCEPTION_STATUSES.includes(order.current_status)) {
+                      const currentIndex = STATUS_FLOW.indexOf(order.current_status);
+                      const sIndex = STATUS_FLOW.indexOf(s);
+                      if (sIndex > currentIndex + 1 || sIndex < currentIndex) {
+                        disabled = true;
+                      }
+                    }
+                    return (
+                      <option key={s} value={s} disabled={disabled}>{statusMeta(s).label}</option>
+                    )
+                  })}
                 </select>
               </div>
               <div>

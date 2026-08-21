@@ -10,7 +10,8 @@ const FIELDS = [
   { name: 'sender_country', label: 'Sender country' },
   { name: 'amount_due', label: 'Amount due', type: 'number', required: true },
   { name: 'currency', label: 'Currency', default: 'GHS' },
-  { name: 'estimated_delivery', label: 'Estimated delivery', type: 'date' },
+  { name: 'estimated_delivery', label: 'Estimated delivery date', type: 'date' },
+  { name: 'delivery_duration_hours', label: 'Automated Delivery Timeframe (Hours)', type: 'number' },
   { name: 'support_phone', label: 'Support phone' },
 ]
 
@@ -44,7 +45,11 @@ export default function OrderNew() {
     setSaveError(null)
     try {
       const order = await db.createOrder(
-        { ...values, amount_due: Number(values.amount_due) },
+        { 
+          ...values, 
+          amount_due: Number(values.amount_due),
+          delivery_duration_hours: values.delivery_duration_hours ? Number(values.delivery_duration_hours) : null
+        },
         profile?.id
       )
       

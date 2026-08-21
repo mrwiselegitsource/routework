@@ -14,25 +14,61 @@ function generateOrderId() {
 export const remoteDb = {
   init() {},
 
+  async applyDynamicStatuses(orders) {
+    if (!orders || (Array.isArray(orders) && orders.length === 0)) return orders;
+    const isArray = Array.isArray(orders);
+    const orderList = isArray ? orders : [orders];
+    const orderIds = orderList.map(o => o.order_id);
+    
+    const { data: events } = await supabase
+      .from('tracking_events')
+      .select('order_id, status, event_time')
+      .in('order_id', orderIds)
+      .eq('added_by', 'system_automation')
+      .order('event_time', { ascending: false });
+      
+    if (!events || events.length === 0) return orders;
+    
+    const now = new Date();
+    const latestActiveEvent = {};
+    for (const e of events) {
+      if (e.event_time && new Date(e.event_time) <= now) {
+        if (!latestActiveEvent[e.order_id] || new Date(e.event_time) > new Date(latestActiveEvent[e.order_id].event_time)) {
+          latestActiveEvent[e.order_id] = e;
+        }
+      }
+    }
+    
+    const updated = orderList.map(o => {
+      const active = latestActiveEvent[o.order_id];
+      if (active) {
+        return { ...o, current_status: active.status };
+      }
+      return o;
+    });
+    
+    return isArray ? updated : updated[0];
+  },
+
   async getOrders() {
     const { data, error } = await supabase
       .from('orders')
       .select('order_id, item_name, recipient_name, current_status, payment_status, created_at')
       .order('created_at', { ascending: false })
     if (error) throw error
-    return data ?? []
+    return this.applyDynamicStatuses(data ?? [])
   },
 
   async getOrder(orderId) {
     const { data, error } = await supabase.from('orders').select('*').eq('order_id', orderId).maybeSingle()
     if (error) throw error
-    return data
+    return this.applyDynamicStatuses(data)
   },
 
   async getPublicOrder(orderId) {
     const { data, error } = await supabase.from('public_order_lookup').select('*').eq('order_id', orderId).maybeSingle()
     if (error) throw error
-    return data
+    return this.applyDynamicStatuses(data)
   },
 
   async getTrackingEvents(orderId) {
@@ -42,7 +78,10 @@ export const remoteDb = {
       .eq('order_id', orderId)
       .order('event_time', { ascending: false })
     if (error) throw error
-    return data ?? []
+    
+    const now = new Date();
+    // Return only events that have already occurred
+    return (data ?? []).filter(e => e.event_time ? new Date(e.event_time) <= now : true);
   },
 
   async createOrder(fields, createdBy) {
@@ -89,6 +128,68 @@ export const remoteDb = {
       .update({ payment_status: status, ...(reference ? { payment_reference: reference } : {}) })
       .eq('order_id', orderId)
     if (error) throw error
+    
+    // Automation trigger: if marked paid, schedule the 7 automated tracking events based on delivery_duration_hours
+    if (status === 'paid') {
+      const order = await this.getOrder(orderId);
+      if (order && order.delivery_duration_hours && order.delivery_duration_hours > 0) {
+        // Calculate the estimated delivery time
+        const now = new Date();
+        const durationMs = order.delivery_duration_hours * 60 * 60 * 1000;
+        const estDelivery = new Date(now.getTime() + durationMs);
+        
+        // Update order with payment_time and estimated_delivery
+        await supabase.from('orders').update({
+          payment_time: now.toISOString(),
+          estimated_delivery: estDelivery.toISOString()
+        }).eq('order_id', orderId);
+        
+        // Schedule 7 linear tracking events spaced evenly
+        const statuses = [
+          'order_confirmed',
+          'package_prepared',
+          'departed_origin',
+          'in_transit',
+          'arrived_destination',
+          'out_for_delivery',
+          'delivered'
+        ];
+        
+        // Calculate the intervals
+        const interval = durationMs / (statuses.length - 1);
+        
+        // Check if there are already automated events to prevent duplication
+        const existingEvents = await this.getTrackingEvents(orderId);
+        if (existingEvents.length < statuses.length) {
+          for (let i = 0; i < statuses.length; i++) {
+            const eventTime = new Date(now.getTime() + (interval * i));
+            
+            // Map location and description for the demo based on status
+            let location = '';
+            let description = '';
+            switch(statuses[i]) {
+              case 'order_confirmed': description = 'Order and payment confirmed'; break;
+              case 'package_prepared': description = 'Package sorted and prepared for dispatch'; break;
+              case 'departed_origin': description = 'Package departed origin sorting center'; break;
+              case 'in_transit': description = 'Package is in transit to destination region'; break;
+              case 'arrived_destination': description = 'Package arrived at local delivery center'; break;
+              case 'out_for_delivery': description = 'Courier is out for delivery'; break;
+              case 'delivered': description = 'Package delivered successfully'; break;
+            }
+            
+            await supabase.from('tracking_events').insert({
+              order_id: orderId,
+              status: statuses[i],
+              location,
+              description,
+              added_by: 'system_automation',
+              event_time: eventTime.toISOString()
+            });
+          }
+        }
+      }
+    }
+    
     return this.getOrder(orderId)
   },
 
@@ -161,9 +262,9 @@ export const remoteDb = {
   },
 
   async getDashboardStats() {
-    const { data, error } = await supabase.from('orders').select('payment_status, current_status')
+    const { data, error } = await supabase.from('orders').select('order_id, payment_status, current_status')
     if (error) throw error
-    const rows = data ?? []
+    const rows = await this.applyDynamicStatuses(data ?? [])
     const EXCEPTION_STATUSES = ['delivery_attempt_failed', 'held_by_customs', 'address_issue', 'returned_to_sender']
     return {
       total: rows.length,
