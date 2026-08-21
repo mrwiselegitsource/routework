@@ -322,7 +322,8 @@ export const remoteDb = {
     return data ?? []
   },
   async addRegion(fields) {
-    const { data, error } = await supabase.from('regions').insert(fields).select().single()
+    const id = crypto.randomUUID()
+    const { data, error } = await supabase.from('regions').insert({ id, ...fields }).select().single()
     if (error) throw error
     return data
   },
@@ -332,7 +333,8 @@ export const remoteDb = {
     return data
   },
   async addPickupPoint(fields) {
-    const { data, error } = await supabase.from('pickup_points').insert(fields).select().single()
+    const id = crypto.randomUUID()
+    const { data, error } = await supabase.from('pickup_points').insert({ id, ...fields }).select().single()
     if (error) throw error
     return data
   },
@@ -342,7 +344,8 @@ export const remoteDb = {
     return data
   },
   async addDeliveryPricing(fields) {
-    const { data, error } = await supabase.from('delivery_pricing').insert(fields).select().single()
+    const id = crypto.randomUUID()
+    const { data, error } = await supabase.from('delivery_pricing').insert({ id, ...fields }).select().single()
     if (error) throw error
     return data
   },
