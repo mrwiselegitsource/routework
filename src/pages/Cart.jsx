@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { db } from '../lib/db';
-import { Trash2, MapPin, CheckCircle2, AlertTriangle, Loader2, ChevronRight, CreditCard } from 'lucide-react';
+import { Trash2, MapPin, CheckCircle2, AlertTriangle, Loader2, ChevronRight, CreditCard, ChevronLeft } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import EditAddressModal from '../components/checkout/EditAddressModal';
+import { saveAddressLocally, loadAddressLocally } from '../lib/local/address';
 
 export default function Cart() {
   const { cart, removeFromCart, clearCart, loading: cartLoading } = useCart();
@@ -20,20 +21,22 @@ export default function Cart() {
   
   // Master Shipping Address State
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [shippingAddress, setShippingAddress] = useState({
-    contactName: profile?.full_name || '',
-    phone: profile?.phone || '',
-    street: '',
-    region: '',
-    city: ''
+  const [shippingAddress, setShippingAddress] = useState(() => {
+    const saved = loadAddressLocally();
+    return saved || {
+      contactName: profile?.full_name || '',
+      phone: profile?.phone || '',
+      street: '',
+      region: '',
+      city: ''
+    };
   });
 
-  // Try to pre-fill address from the first cart item if available
+  // Try to pre-fill address from the first cart item if available, ONLY if not loaded from local storage
   useEffect(() => {
-    if (cart?.items && cart.items.length > 0) {
+    if (!shippingAddress.street && cart?.items && cart.items.length > 0) {
       const firstItemOrder = cart.items[0].order;
-      if (firstItemOrder?.recipient_address && !shippingAddress.street) {
-        // Very basic parsing attempt. In a real scenario, addresses should ideally be structured in DB.
+      if (firstItemOrder?.recipient_address) {
         const parts = firstItemOrder.recipient_address.split(',');
         setShippingAddress(prev => ({
           ...prev,
@@ -74,7 +77,6 @@ export default function Cart() {
 
     const pricing = pricingRules.find(p => p.region_id === region.id);
     if (pricing) {
-      // For now, assuming home delivery if they entered a custom address
       return sum + parseFloat(pricing.home_delivery_fee || 0);
     }
     return sum;
@@ -84,6 +86,7 @@ export default function Cart() {
 
   const handleSaveAddress = (newAddress) => {
     setShippingAddress(newAddress);
+    saveAddressLocally(newAddress);
     setIsEditingAddress(false);
   };
 
@@ -102,7 +105,6 @@ export default function Cart() {
     try {
       // Process all items in cart
       for (const item of items) {
-        
         // Update the order in the database with the master address details
         await db.updateOrderDetails(item.order_id, {
           recipient_name: shippingAddress.contactName,
@@ -153,9 +155,9 @@ export default function Cart() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-24 md:py-8">
+    <div className="bg-[#f2f2f2] min-h-screen pb-24 md:py-8">
       {/* Mobile Header (AliExpress style) */}
-      <div className="bg-white px-4 py-3 sticky top-0 z-10 border-b border-gray-100 md:hidden flex items-center shadow-sm">
+      <div className="bg-white px-4 py-3 sticky top-0 z-10 md:hidden flex items-center">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2">
           <ChevronLeft className="w-6 h-6 text-gray-800" />
         </button>
@@ -163,12 +165,12 @@ export default function Cart() {
         <div className="w-8"></div> {/* Spacer */}
       </div>
 
-      <div className="max-w-3xl mx-auto px-0 md:px-4 space-y-2 md:space-y-6">
+      <div className="max-w-3xl mx-auto px-3 md:px-4 space-y-3 pt-3 md:pt-0">
         
-        <h1 className="text-3xl font-extrabold text-gray-900 hidden md:block">Checkout</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 hidden md:block mb-6">Checkout</h1>
 
         {!hasItems ? (
-          <div className="bg-white md:rounded-2xl shadow-sm border-y md:border border-gray-100 p-12 text-center mt-2 md:mt-0">
+          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
               <MapPin className="w-8 h-8 text-gray-400" />
             </div>
@@ -178,7 +180,7 @@ export default function Cart() {
         ) : (
           <>
             {error && (
-              <div className="bg-red-50 text-red-700 text-sm px-4 py-3 mx-4 md:mx-0 md:rounded-xl border border-red-100 flex items-start gap-2">
+              <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl border border-red-100 flex items-start gap-2">
                 <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -187,7 +189,7 @@ export default function Cart() {
             {/* Shipping Address Block */}
             <div 
               onClick={() => setIsEditingAddress(true)}
-              className="bg-white md:rounded-2xl p-4 md:p-6 shadow-sm border-y md:border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
+              className="bg-white rounded-2xl p-4 md:p-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
             >
               <div>
                 <h2 className="text-sm font-bold text-gray-900 mb-2">Shipping address</h2>
@@ -212,7 +214,7 @@ export default function Cart() {
             </div>
 
             {/* Payment Methods */}
-            <div className="bg-white md:rounded-2xl p-4 md:p-6 shadow-sm border-y md:border border-gray-100">
+            <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
               <h2 className="text-sm font-bold text-gray-900 mb-4">Payment Methods</h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
@@ -229,15 +231,15 @@ export default function Cart() {
             </div>
 
             {/* Items List */}
-            <div className="bg-white md:rounded-2xl shadow-sm border-y md:border border-gray-100 overflow-hidden">
-              <div className="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
-                <span className="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded">Choice</span>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-white border-b border-gray-100 flex items-center">
+                <span className="bg-yellow-100 text-yellow-800 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Choice</span>
                 <span className="text-sm font-bold text-gray-900 ml-2">Shipped by RouteWorks</span>
               </div>
               
               <div className="divide-y divide-gray-100">
                 {items.map((item) => (
-                  <div key={item.id} className="p-4 flex gap-4">
+                  <div key={item.id} className="p-4 flex gap-4 bg-gray-50/30">
                     {item.media ? (
                       <img src={item.media.storage_path || item.media.public_url} alt="Item" className="w-24 h-24 object-cover rounded-lg bg-gray-50" onError={(e) => e.target.style.display = 'none'} />
                     ) : (
@@ -248,41 +250,39 @@ export default function Cart() {
 
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
-                        <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">
+                        <h3 className="text-sm text-gray-900 line-clamp-2 leading-tight">
                           {item.order?.item_name || 'Unknown Item'}
                         </h3>
                         <button onClick={() => removeFromCart(item.order_id)} className="text-gray-400 hover:text-red-500">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className="text-xs text-gray-500 font-mono mt-1 mb-2">ID: {item.order_id}</p>
                       
-                      <div className="flex justify-between items-end">
+                      <div className="mt-4 flex justify-between items-end">
                         {item.order?.payment_status === 'unpaid' ? (
                           <div>
                             <span className="font-extrabold text-gray-900">GH₵ {item.order.amount_due}</span>
-                            <span className="text-xs text-gray-500 block">Unpaid Balance</span>
                           </div>
                         ) : (
                           <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Shipment Paid</span>
                         )}
-                        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">Qty: 1</span>
+                        <span className="text-xs text-gray-500 border border-gray-200 px-2 py-1 rounded-full">Qty: 1</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
               
-              <div className="px-4 py-3 bg-gray-50/30 border-t border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="font-semibold text-gray-700">Shipping</span>
+              <div className="px-4 py-3 bg-white text-sm">
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Shipping:</span>
                   <span className="font-bold text-gray-900">{deliveryFee > 0 ? `GH₵ ${deliveryFee.toFixed(2)}` : 'Free shipping'}</span>
                 </div>
               </div>
             </div>
 
             {/* Order Summary */}
-            <div className="bg-white md:rounded-2xl p-4 md:p-6 shadow-sm border-y md:border border-gray-100">
+            <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm mb-6">
               <h2 className="text-sm font-bold text-gray-900 mb-4">Summary</h2>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-gray-600">
@@ -295,27 +295,24 @@ export default function Cart() {
                 </div>
               </div>
               <p className="text-xs text-gray-400 mt-6 text-center">
-                Upon clicking 'Place Order', I confirm I have read and acknowledged <span className="text-blue-500 cursor-pointer hover:underline">all terms and policies</span>.
+                Upon clicking 'Place order', I confirm I have read and acknowledged <span className="text-blue-500 cursor-pointer hover:underline">all terms and policies</span>.
               </p>
             </div>
-            
-            {/* Desktop spacer so fixed bottom bar doesn't hide content */}
-            <div className="h-24 md:hidden"></div>
           </>
         )}
       </div>
 
       {/* Fixed Bottom Bar */}
       {hasItems && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:py-4 md:px-8 flex items-center justify-between z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:max-w-3xl md:mx-auto md:rounded-t-2xl">
-          <div className="flex flex-col">
-            <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Total</span>
-            <span className="text-2xl font-extrabold text-gray-900">GH₵ {totalDue.toFixed(2)}</span>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 md:py-4 md:px-8 flex items-center justify-between z-20 md:max-w-3xl md:mx-auto md:rounded-t-2xl">
+          <div className="flex items-center gap-2 pl-2">
+            <span className="text-sm font-bold text-gray-900">Total</span>
+            <span className="text-xl font-extrabold text-gray-900">GH₵ {totalDue.toFixed(2)}</span>
           </div>
           <button
             onClick={handleCheckout}
             disabled={checkingOut}
-            className="bg-[#ff3b30] hover:bg-[#ff1a10] text-white font-bold px-8 py-3.5 rounded-full shadow-lg transition-colors disabled:opacity-50 min-w-[160px] flex items-center justify-center gap-2 text-lg"
+            className="bg-[#ff3b30] hover:bg-[#ff1a10] text-white font-bold px-8 py-3 rounded-full shadow-lg transition-colors disabled:opacity-50 min-w-[140px] flex items-center justify-center gap-2 text-base"
           >
             {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Place order'}
           </button>

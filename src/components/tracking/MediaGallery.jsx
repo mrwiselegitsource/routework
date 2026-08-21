@@ -32,7 +32,7 @@ export default function MediaGallery({ media = [] }) {
   }, [media]);
 
   return (
-    <div className="bg-white md:rounded-3xl shadow-sm md:shadow-xl border-y md:border border-gray-100 overflow-hidden mb-6">
+    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6">
       {/* Main Display Area (Swipable) */}
       <div 
         ref={containerRef}

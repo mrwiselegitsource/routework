@@ -239,7 +239,7 @@ export default function Track() {
       </div>
 
       {/* Main Content Area */}
-      <div className="container mx-auto max-w-4xl px-0 md:px-4 relative z-20 py-6 md:py-10">
+      <div className="container mx-auto max-w-4xl px-4 relative z-20 py-6 md:py-10">
 
         {/* SEARCH state — show global network */}
         {step === STEP.SEARCH && (

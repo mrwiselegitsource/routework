@@ -22,8 +22,8 @@ export default function EditAddressModal({ isOpen, onClose, addressData, onSave,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 animate-[fadeIn_0.2s_ease-out]">
-      <div className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-[fadeIn_0.2s_ease-out]">
+      <div className="bg-white w-full h-full md:h-auto max-w-lg md:rounded-2xl shadow-xl overflow-hidden flex flex-col md:max-h-[90vh]">
         
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100">

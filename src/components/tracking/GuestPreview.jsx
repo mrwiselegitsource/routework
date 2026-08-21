@@ -6,7 +6,7 @@ export default function GuestPreview({ preview, media, onLogin, onSignup }) {
   return (
     <div className="animate-[fadeIn_0.5s_ease-out]">
       {/* Preview Card */}
-      <div className="bg-white md:rounded-3xl shadow-sm md:shadow-xl border-y md:border border-gray-100 overflow-hidden mb-6">
+      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6">
 
         {/* Preview Image */}
         {media && (
@@ -62,7 +62,7 @@ export default function GuestPreview({ preview, media, onLogin, onSignup }) {
       </div>
 
       {/* CTA Card */}
-      <div className="bg-gradient-to-br from-[#0033a0] to-[#001b57] md:rounded-3xl shadow-sm md:shadow-xl p-8 text-center text-white">
+      <div className="bg-gradient-to-br from-[#0033a0] to-[#001b57] rounded-3xl shadow-xl p-8 text-center text-white">
         <h3 className="text-xl font-extrabold mb-2">Want full access?</h3>
         <p className="text-blue-200 text-sm mb-6 max-w-md mx-auto">
           Create an account to view full details, gallery, tracking timeline, and claim this item.

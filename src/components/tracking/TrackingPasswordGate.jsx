@@ -63,7 +63,7 @@ export default function TrackingPasswordGate({ trackingNumber, onUnlocked, onCan
   };
 
   return (
-    <div className="bg-white md:rounded-3xl shadow-sm md:shadow-xl p-6 md:p-12 border-y md:border border-gray-100 text-center w-full max-w-lg mx-auto animate-[fadeIn_0.5s_ease-out]">
+    <div className="bg-white rounded-3xl shadow-xl p-6 md:p-12 border border-gray-100 text-center w-full max-w-lg mx-auto animate-[fadeIn_0.5s_ease-out]">
       
       {/* Lock Icon */}
       <div className="mx-auto w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
