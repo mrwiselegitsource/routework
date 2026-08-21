@@ -52,7 +52,8 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
   const handleClaimAndAddToCart = async () => {
     setError(null);
     if (!profile?.id) {
-      alert('Must be logged in to claim.');
+      // Redirect to login with returnTo state to come back here
+      navigate('/login', { state: { returnTo: `/track?trackingId=${trackingId}` } });
       return;
     }
     if (deliveryMode === 'pickup' && !form.pickupPointId) {

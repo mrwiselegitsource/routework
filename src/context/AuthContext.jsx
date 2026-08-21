@@ -24,6 +24,12 @@ export function AuthProvider({ children }) {
 
     const { data: listener } = auth.onAuthStateChange((newSession) => {
       setSession(newSession)
+      if (newSession) {
+        setLoading(true)
+      } else {
+        setProfile(null)
+        setLoading(false)
+      }
     })
 
     return () => {
@@ -42,9 +48,11 @@ export function AuthProvider({ children }) {
       if (!active) return
       if (error) {
         console.warn('[auth] could not load profile', error.message)
+        setLoading(false)
         return
       }
       setProfile(data)
+      setLoading(false)
     })
     return () => {
       active = false

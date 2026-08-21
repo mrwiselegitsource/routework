@@ -22,8 +22,9 @@ export function CustomerAuthProvider({ children }) {
     // Listen for login/logout events
     const { data: listener } = auth.onCustomerAuthStateChange((newSession) => {
       setSession(newSession)
-      // If signed out, clear profile immediately and stop loading
-      if (!newSession) {
+      if (newSession) {
+        setLoading(true)
+      } else {
         setProfile(null)
         setLoading(false)
       }

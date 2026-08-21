@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Search, Loader2, ShieldCheck } from 'lucide-react';
+import { Search, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import StatusHeader from '../components/tracking/StatusHeader';
 import Timeline from '../components/tracking/Timeline';
@@ -294,7 +294,7 @@ export default function Track() {
             <StatusHeader
               trackingId={order.order_id}
               status={(order.current_status || 'pending').replace(/_/g, ' ')}
-              location={isClaimed ? (order.current_location || 'Pending update') : 'Origin Port (Pending Delivery Details)'}
+              location={isClaimed ? (order.current_location || 'Pending update') : (order.sender_country ? `${order.sender_country} (Origin Port - Pending Delivery Details)` : 'Origin Port (Pending Delivery Details)')}
               eta={order.estimated_delivery || 'To be updated'}
             />
 
