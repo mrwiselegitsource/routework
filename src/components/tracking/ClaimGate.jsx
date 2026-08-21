@@ -98,7 +98,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
 
   if (claimStatus === 'Claimed') {
     return (
-      <div className="bg-green-50/50 rounded-3xl border border-green-100 p-8 mt-8 text-center">
+      <div className="bg-green-50/50 md:rounded-3xl border-y md:border border-green-100 p-6 md:p-8 mt-8 text-center">
         <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 size={32} />
         </div>
@@ -107,7 +107,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
           This shipment has been claimed and delivery is being processed.
         </p>
         {recipientDetails && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 max-w-md mx-auto text-left space-y-3">
+          <div className="bg-white md:rounded-2xl p-6 shadow-sm border-y md:border border-green-100 w-full mx-auto text-left space-y-3">
              <p className="text-sm"><span className="font-semibold text-gray-500">Name:</span> {recipientDetails.recipient_name}</p>
              <p className="text-sm"><span className="font-semibold text-gray-500">Phone:</span> {recipientDetails.recipient_phone}</p>
              <p className="text-sm"><span className="font-semibold text-gray-500">Address:</span> {recipientDetails.recipient_address}</p>
@@ -120,7 +120,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
 
   // Not Claimed yet
   return (
-    <div className="bg-blue-50/30 rounded-3xl border border-blue-100 p-8 md:p-10 mt-8 text-center">
+    <div className="bg-blue-50/30 md:rounded-3xl border-y md:border border-blue-100 p-6 md:p-10 mt-8 text-center">
       <div className="w-16 h-16 bg-blue-100 text-[#0033a0] rounded-full flex items-center justify-center mx-auto mb-4">
         <ShoppingCart size={32} />
       </div>
@@ -131,7 +131,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
       </p>
 
       {/* Location Selection Form inside ClaimGate */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-left max-w-lg mx-auto mb-6">
+      <div className="bg-white md:rounded-2xl shadow-sm border-y md:border border-gray-100 p-6 text-left w-full mx-auto mb-6">
         <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <MapPin className="w-5 h-5 text-[#0033a0]" /> Delivery Details
         </h4>
@@ -209,7 +209,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 max-w-sm mx-auto mb-6 flex flex-col gap-2 text-left">
+      <div className="bg-white md:rounded-2xl p-4 shadow-sm border-y md:border border-gray-100 w-full mx-auto mb-6 flex flex-col gap-2 text-left">
         {paymentStatus === 'Unpaid' && (
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-600 flex items-center gap-2">
@@ -237,7 +237,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
       {isInCart ? (
         <Link 
           to="/cart"
-          className="inline-flex items-center justify-center w-full max-w-sm bg-green-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-600 transition-colors gap-2"
+          className="inline-flex items-center justify-center w-full bg-green-500 text-white font-bold py-4 md:rounded-xl shadow-lg hover:bg-green-600 transition-colors gap-2"
         >
           <CheckCircle2 className="w-5 h-5" />
           Added to Cart — Proceed to Checkout
@@ -246,7 +246,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
         <button 
           onClick={handleClaimAndAddToCart}
           disabled={adding || loading}
-          className="w-full max-w-sm mx-auto bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full mx-auto bg-orange-500 text-white font-bold py-4 md:rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingCart className="w-5 h-5" />}
           Claim & Add to Cart

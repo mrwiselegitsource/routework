@@ -4,7 +4,7 @@ export default function DetailsPanel({ trackingId, origin, destination, location
   const isPaid = paymentStatus === 'Paid';
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 md:p-8">
+    <div className="bg-white md:rounded-3xl shadow-sm border-y md:border border-gray-200 p-6 md:p-8">
       <h3 className="text-lg font-bold text-blue-900 mb-6 border-b border-gray-100 pb-4">Shipment Details</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">

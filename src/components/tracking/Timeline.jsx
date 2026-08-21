@@ -18,7 +18,7 @@ const getStepIcon = (label) => {
 
 export default function Timeline({ steps }) {
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 md:p-8">
+    <div className="bg-white md:rounded-3xl shadow-sm border-y md:border border-gray-200 p-6 md:p-8">
       <h3 className="text-lg font-bold text-blue-900 mb-8 border-b border-gray-100 pb-4">Tracking History</h3>
       
       <div className="relative">

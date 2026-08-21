@@ -31,7 +31,7 @@ export default function StatusHeader({ status, location, eta, trackingId }) {
   }
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 mb-8">
+    <div className="bg-white md:rounded-3xl shadow-sm md:shadow-lg border-y md:border border-gray-100 p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 mb-8">
       <div className={`w-24 h-24 rounded-full flex items-center justify-center shrink-0 shadow-inner ${bgColor} ${textColor}`}>
         <StatusIcon size={48} strokeWidth={1.5} />
       </div>
