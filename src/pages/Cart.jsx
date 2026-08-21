@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { db } from '../lib/db';
-import { Trash2, MapPin, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Trash2, MapPin, CheckCircle2, AlertTriangle, Loader2, ChevronRight, CreditCard } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
+import EditAddressModal from '../components/checkout/EditAddressModal';
 
 export default function Cart() {
   const { cart, removeFromCart, clearCart, loading: cartLoading } = useCart();
@@ -16,6 +17,35 @@ export default function Cart() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  
+  // Master Shipping Address State
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState({
+    contactName: profile?.full_name || '',
+    phone: profile?.phone || '',
+    street: '',
+    region: '',
+    city: ''
+  });
+
+  // Try to pre-fill address from the first cart item if available
+  useEffect(() => {
+    if (cart?.items && cart.items.length > 0) {
+      const firstItemOrder = cart.items[0].order;
+      if (firstItemOrder?.recipient_address && !shippingAddress.street) {
+        // Very basic parsing attempt. In a real scenario, addresses should ideally be structured in DB.
+        const parts = firstItemOrder.recipient_address.split(',');
+        setShippingAddress(prev => ({
+          ...prev,
+          contactName: firstItemOrder.recipient_name || prev.contactName,
+          phone: firstItemOrder.recipient_phone || prev.phone,
+          street: parts[0] ? parts[0].trim() : '',
+          region: firstItemOrder.recipient_region || prev.region,
+          city: parts.length > 1 ? parts[1].trim() : ''
+        }));
+      }
+    }
+  }, [cart?.items]);
 
   useEffect(() => {
     async function loadConfig() {
@@ -36,8 +66,7 @@ export default function Cart() {
   }, 0);
 
   const deliveryFee = items.reduce((sum, item) => {
-    const regionName = item.order?.recipient_region;
-    const address = item.order?.recipient_address || '';
+    const regionName = shippingAddress.region;
     if (!regionName) return sum;
 
     const region = regions.find(r => r.name === regionName);
@@ -45,23 +74,43 @@ export default function Cart() {
 
     const pricing = pricingRules.find(p => p.region_id === region.id);
     if (pricing) {
-      if (address.startsWith('PICKUP POINT:')) {
-        return sum + parseFloat(pricing.pickup_fee || 0);
-      } else {
-        return sum + parseFloat(pricing.home_delivery_fee || 0);
-      }
+      // For now, assuming home delivery if they entered a custom address
+      return sum + parseFloat(pricing.home_delivery_fee || 0);
     }
     return sum;
   }, 0);
 
   const totalDue = outstandingBalance + deliveryFee;
 
+  const handleSaveAddress = (newAddress) => {
+    setShippingAddress(newAddress);
+    setIsEditingAddress(false);
+  };
+
   const handleCheckout = async () => {
+    if (!shippingAddress.street || !shippingAddress.region || !shippingAddress.phone || !shippingAddress.contactName) {
+      setError("Please fill out the complete shipping address before placing the order.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setError(null);
     setCheckingOut(true);
+    
+    const formattedAddress = `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.region}, Ghana`;
+
     try {
       // Process all items in cart
       for (const item of items) {
+        
+        // Update the order in the database with the master address details
+        await db.updateOrderDetails(item.order_id, {
+          recipient_name: shippingAddress.contactName,
+          recipient_phone: shippingAddress.phone,
+          recipient_address: formattedAddress,
+          recipient_region: shippingAddress.region
+        });
+
         // 1. Mark as paid if it was unpaid
         if (item.order?.payment_status === 'unpaid') {
           await db.updatePaymentStatus(item.order_id, 'paid', `CART-${cart.id}`);
@@ -71,7 +120,7 @@ export default function Cart() {
         await db.addTrackingEvent(item.order_id, {
           status: 'delivery_arranged',
           location: 'Dispatch Center',
-          description: `Payment completed. Delivery arranged for: ${item.order?.recipient_address}.`
+          description: `Payment completed. Delivery arranged for: ${formattedAddress}.`
         }, null);
       }
 
@@ -92,7 +141,7 @@ export default function Cart() {
 
   if (success) {
     return (
-      <div className="bg-white rounded-3xl shadow-xl p-12 text-center animate-[fadeIn_0.5s_ease-out]">
+      <div className="bg-white rounded-3xl shadow-xl p-12 text-center animate-[fadeIn_0.5s_ease-out] mt-8 max-w-lg mx-auto">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 className="w-10 h-10 text-green-500" />
         </div>
@@ -104,119 +153,182 @@ export default function Cart() {
   }
 
   return (
-    <div className="animate-[fadeIn_0.5s_ease-out]">
-      <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Checkout</h1>
+    <div className="bg-gray-50 min-h-screen pb-24 md:py-8">
+      {/* Mobile Header (AliExpress style) */}
+      <div className="bg-white px-4 py-3 sticky top-0 z-10 border-b border-gray-100 md:hidden flex items-center shadow-sm">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2">
+          <ChevronLeft className="w-6 h-6 text-gray-800" />
+        </button>
+        <h1 className="text-lg font-bold text-gray-900 mx-auto">Checkout</h1>
+        <div className="w-8"></div> {/* Spacer */}
+      </div>
 
-      {!hasItems ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MapPin className="w-8 h-8 text-gray-400" />
+      <div className="max-w-3xl mx-auto px-0 md:px-4 space-y-2 md:space-y-6">
+        
+        <h1 className="text-3xl font-extrabold text-gray-900 hidden md:block">Checkout</h1>
+
+        {!hasItems ? (
+          <div className="bg-white md:rounded-2xl shadow-sm border-y md:border border-gray-100 p-12 text-center mt-2 md:mt-0">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Cart is Empty</h3>
+            <p className="text-gray-500">Track a shipment and claim it to proceed to checkout.</p>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">Cart is Empty</h3>
-          <p className="text-gray-500">Track a shipment and claim it to proceed to checkout.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Cart Items List */}
-          <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                
-                {item.media ? (
-                  <img src={item.media.storage_path || item.media.public_url} alt="Shipment preview" className="w-full md:w-32 h-32 object-cover rounded-xl bg-gray-50" onError={(e) => e.target.style.display = 'none'} />
+        ) : (
+          <>
+            {error && (
+              <div className="bg-red-50 text-red-700 text-sm px-4 py-3 mx-4 md:mx-0 md:rounded-xl border border-red-100 flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Shipping Address Block */}
+            <div 
+              onClick={() => setIsEditingAddress(true)}
+              className="bg-white md:rounded-2xl p-4 md:p-6 shadow-sm border-y md:border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
+            >
+              <div>
+                <h2 className="text-sm font-bold text-gray-900 mb-2">Shipping address</h2>
+                {shippingAddress.contactName ? (
+                  <div className="space-y-1">
+                    <p className="text-base font-bold text-gray-900">
+                      {shippingAddress.contactName}
+                    </p>
+                    <p className="text-sm text-gray-500 font-mono">+233 {shippingAddress.phone}</p>
+                    <p className="text-sm text-gray-500">
+                      {shippingAddress.street}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {shippingAddress.city ? `${shippingAddress.city}, ` : ''}{shippingAddress.region}, Ghana
+                    </p>
+                  </div>
                 ) : (
-                  <div className="w-full md:w-32 h-32 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 text-gray-300">
-                    <MapPin className="w-8 h-8" />
-                  </div>
+                  <p className="text-red-500 font-semibold text-sm">Please add a shipping address</p>
                 )}
-
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{item.order?.item_name || 'Unknown Item'}</h3>
-                      <p className="text-sm text-gray-500 font-mono mt-1">ID: {item.order_id}</p>
-                    </div>
-                    <button 
-                      onClick={() => removeFromCart(item.order_id)}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remove from cart"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                  
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider">
-                      {item.order?.current_status?.replace(/_/g, ' ')}
-                    </span>
-                    {item.order?.payment_status === 'unpaid' ? (
-                      <span className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-semibold">
-                        Outstanding: GH₵ {item.order.amount_due}
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-semibold">
-                        Shipment Paid
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="mt-4 pt-3 border-t border-gray-100">
-                    <p className="text-sm font-semibold text-gray-700">Delivery To:</p>
-                    <p className="text-sm text-gray-500">{item.order?.recipient_address}</p>
-                    <p className="text-sm text-gray-500">{item.order?.recipient_region}</p>
-                  </div>
-                </div>
               </div>
-            ))}
-          </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </div>
 
-          {/* Checkout Panel */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sticky top-6">
-              <h3 className="text-xl font-extrabold text-gray-900 mb-6">Order Summary</h3>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-gray-600">
-                  <span>Shipment Balances</span>
-                  <span className="font-semibold">GH₵ {outstandingBalance.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Delivery Fees</span>
-                  <span className="font-semibold">GH₵ {deliveryFee.toFixed(2)}</span>
-                </div>
-                <div className="border-t border-gray-100 pt-3 flex justify-between text-lg font-extrabold text-gray-900">
-                  <span>Total Due Today</span>
-                  <span>GH₵ {totalDue.toFixed(2)}</span>
-                </div>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl border border-red-100 flex items-start gap-2 mb-6">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <button
-                onClick={handleCheckout}
-                disabled={checkingOut}
-                className="w-full bg-[#0033a0] text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                Pay GH₵ {totalDue.toFixed(2)}
-              </button>
-
-              <div className="mt-4 text-center">
-                <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Secure checkout process
-                </p>
+            {/* Payment Methods */}
+            <div className="bg-white md:rounded-2xl p-4 md:p-6 shadow-sm border-y md:border border-gray-100">
+              <h2 className="text-sm font-bold text-gray-900 mb-4">Payment Methods</h2>
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                  <input type="radio" name="payment" className="w-5 h-5 text-[#ff3b30] focus:ring-[#ff3b30]" defaultChecked />
+                  <CreditCard className="w-6 h-6 text-gray-600" />
+                  <span className="font-semibold text-gray-800">Credit / Debit Card</span>
+                </label>
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 opacity-50">
+                  <input type="radio" name="payment" disabled className="w-5 h-5" />
+                  <div className="w-6 h-6 bg-yellow-400 rounded flex items-center justify-center text-xs font-bold text-black">M</div>
+                  <span className="font-semibold text-gray-800">Mobile Money (Coming Soon)</span>
+                </label>
               </div>
             </div>
-          </div>
 
+            {/* Items List */}
+            <div className="bg-white md:rounded-2xl shadow-sm border-y md:border border-gray-100 overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50/50 border-b border-gray-100">
+                <span className="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded">Choice</span>
+                <span className="text-sm font-bold text-gray-900 ml-2">Shipped by RouteWorks</span>
+              </div>
+              
+              <div className="divide-y divide-gray-100">
+                {items.map((item) => (
+                  <div key={item.id} className="p-4 flex gap-4">
+                    {item.media ? (
+                      <img src={item.media.storage_path || item.media.public_url} alt="Item" className="w-24 h-24 object-cover rounded-lg bg-gray-50" onError={(e) => e.target.style.display = 'none'} />
+                    ) : (
+                      <div className="w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100 text-gray-300">
+                        <MapPin className="w-6 h-6" />
+                      </div>
+                    )}
+
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight">
+                          {item.order?.item_name || 'Unknown Item'}
+                        </h3>
+                        <button onClick={() => removeFromCart(item.order_id)} className="text-gray-400 hover:text-red-500">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 font-mono mt-1 mb-2">ID: {item.order_id}</p>
+                      
+                      <div className="flex justify-between items-end">
+                        {item.order?.payment_status === 'unpaid' ? (
+                          <div>
+                            <span className="font-extrabold text-gray-900">GH₵ {item.order.amount_due}</span>
+                            <span className="text-xs text-gray-500 block">Unpaid Balance</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Shipment Paid</span>
+                        )}
+                        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">Qty: 1</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="px-4 py-3 bg-gray-50/30 border-t border-gray-100">
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold text-gray-700">Shipping</span>
+                  <span className="font-bold text-gray-900">{deliveryFee > 0 ? `GH₵ ${deliveryFee.toFixed(2)}` : 'Free shipping'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-white md:rounded-2xl p-4 md:p-6 shadow-sm border-y md:border border-gray-100">
+              <h2 className="text-sm font-bold text-gray-900 mb-4">Summary</h2>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span className="font-semibold text-gray-900">GH₵ {outstandingBalance.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Shipping fee</span>
+                  <span className="font-semibold text-gray-900">{deliveryFee > 0 ? `GH₵ ${deliveryFee.toFixed(2)}` : 'Free'}</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 mt-6 text-center">
+                Upon clicking 'Place Order', I confirm I have read and acknowledged <span className="text-blue-500 cursor-pointer hover:underline">all terms and policies</span>.
+              </p>
+            </div>
+            
+            {/* Desktop spacer so fixed bottom bar doesn't hide content */}
+            <div className="h-24 md:hidden"></div>
+          </>
+        )}
+      </div>
+
+      {/* Fixed Bottom Bar */}
+      {hasItems && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:py-4 md:px-8 flex items-center justify-between z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:max-w-3xl md:mx-auto md:rounded-t-2xl">
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Total</span>
+            <span className="text-2xl font-extrabold text-gray-900">GH₵ {totalDue.toFixed(2)}</span>
+          </div>
+          <button
+            onClick={handleCheckout}
+            disabled={checkingOut}
+            className="bg-[#ff3b30] hover:bg-[#ff1a10] text-white font-bold px-8 py-3.5 rounded-full shadow-lg transition-colors disabled:opacity-50 min-w-[160px] flex items-center justify-center gap-2 text-lg"
+          >
+            {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Place order'}
+          </button>
         </div>
       )}
+
+      <EditAddressModal 
+        isOpen={isEditingAddress}
+        onClose={() => setIsEditingAddress(false)}
+        addressData={shippingAddress}
+        onSave={handleSaveAddress}
+        regions={regions}
+      />
     </div>
   );
 }

@@ -1,53 +1,75 @@
-import React, { useState } from 'react';
-import { Play, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play } from 'lucide-react';
 
 export default function MediaGallery({ media = [] }) {
   if (!media || media.length === 0) return null;
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeMedia = media[activeIndex];
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.dataset.index);
+            if (!isNaN(index)) {
+              setActiveIndex(index);
+            }
+          }
+        });
+      },
+      { root: container, threshold: 0.5 }
+    );
+
+    const children = container.querySelectorAll('.snap-center');
+    children.forEach((child) => observer.observe(child));
+
+    return () => observer.disconnect();
+  }, [media]);
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-      {/* Main Display Area */}
-      <div className="relative aspect-video bg-gray-100 flex items-center justify-center">
-        {activeMedia.media_type === 'video' ? (
-          <video 
-            key={activeMedia.storage_path}
-            src={activeMedia.public_url || activeMedia.storage_path}
-            controls
-            className="w-full h-full object-contain bg-black"
-          />
-        ) : (
-          <img 
-            src={activeMedia.public_url || activeMedia.storage_path} 
-            alt="Item" 
-            className="w-full h-full object-cover"
-          />
-        )}
+    <div className="bg-white md:rounded-3xl shadow-sm md:shadow-xl border-y md:border border-gray-100 overflow-hidden mb-6">
+      {/* Main Display Area (Swipable) */}
+      <div 
+        ref={containerRef}
+        className="relative aspect-video bg-gray-100 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {media.map((item, idx) => (
+          <div 
+            key={item.storage_path || idx} 
+            data-index={idx}
+            className="w-full shrink-0 snap-center h-full flex items-center justify-center relative"
+          >
+            {item.media_type === 'video' ? (
+              <video 
+                src={item.public_url || item.storage_path}
+                controls
+                className="w-full h-full object-contain bg-black"
+              />
+            ) : (
+              <img 
+                src={item.public_url || item.storage_path} 
+                alt={`Media ${idx + 1}`} 
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* Thumbnails (only show if there's more than 1 item) */}
+      {/* Dots Indicator */}
       {media.length > 1 && (
-        <div className="p-4 bg-gray-50 flex gap-4 overflow-x-auto border-t border-gray-100">
-          {media.map((item, idx) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveIndex(idx)}
-              className={`relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${activeIndex === idx ? 'border-orange-500 shadow-md ring-2 ring-orange-200' : 'border-transparent opacity-70 hover:opacity-100'}`}
-            >
-              {item.media_type === 'video' ? (
-                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white">
-                  <Play size={24} />
-                </div>
-              ) : (
-                <img 
-                  src={item.public_url || item.storage_path} 
-                  className="w-full h-full object-cover"
-                  alt={`Thumbnail ${idx + 1}`}
-                />
-              )}
-            </button>
+        <div className="flex justify-center gap-1.5 p-3 bg-white">
+          {media.map((_, idx) => (
+            <div 
+              key={idx}
+              className={`h-1.5 rounded-full transition-all duration-300 ${activeIndex === idx ? 'w-4 bg-[#0033a0]' : 'w-1.5 bg-gray-200'}`}
+            />
           ))}
         </div>
       )}
