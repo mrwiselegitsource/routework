@@ -22,7 +22,13 @@ export const remoteAuth = {
   // ── Customer Auth ──────────────────────────────────────
 
   async customerSignUp({ email, password, name, phone }) {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
+    })
     if (error) return { data: null, error }
     // Create customer profile row
     if (data.user) {
