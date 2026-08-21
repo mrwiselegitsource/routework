@@ -101,6 +101,26 @@ export const localAuth = {
     return { data: { user: { id: customer.id, email: customer.email } }, error: null }
   },
 
+  async customerSignInWithOtp({ phone }) {
+    // Mock OTP sending
+    if (!phone) return { data: null, error: { message: 'Phone number required' } };
+    return { data: { messageId: 'mock-message-id' }, error: null };
+  },
+
+  async customerVerifyOtp({ phone, token }) {
+    if (token !== '123456') { // Mock valid token
+      return { data: null, error: { message: 'Invalid or expired OTP' } };
+    }
+    
+    // Check if customer exists by phone (mock)
+    const customer = table.customers.find((c) => c.phone === phone) || { id: uid('cust'), phone, email: '', name: 'OTP User' };
+    const session = { user: { id: customer.id, email: customer.email }, access_token: uid('cust_token'), user_type: 'customer' };
+    setSession(session);
+    customerListeners.forEach((cb) => cb(session));
+    
+    return { data: { session, user: customer }, error: null };
+  },
+
   async customerSignOut() {
     setSession(null)
     customerListeners.forEach((cb) => cb(null))

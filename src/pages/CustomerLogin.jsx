@@ -8,9 +8,11 @@ import Footer from '../components/Footer';
 export default function CustomerLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' | 'phone'
+  const [form, setForm] = useState({ email: '', password: '', phone: '', otp: '' });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,17 +20,32 @@ export default function CustomerLogin() {
     setError(null);
     
     try {
-      const { error: signInError } = await auth.customerSignIn({
-        email: form.email,
-        password: form.password
-      });
+      if (loginMethod === 'email') {
+        const { error: signInError } = await auth.customerSignIn({
+          email: form.email,
+          password: form.password
+        });
+        if (signInError) throw signInError;
+        
+      } else {
+        if (!otpSent) {
+          // Send OTP
+          const { error: sendError } = await auth.customerSignInWithOtp({ phone: form.phone });
+          if (sendError) throw sendError;
+          setOtpSent(true);
+          setLoading(false);
+          return; // Stop here, wait for OTP
+        } else {
+          // Verify OTP
+          const { error: verifyError } = await auth.customerVerifyOtp({ phone: form.phone, token: form.otp });
+          if (verifyError) throw verifyError;
+        }
+      }
 
-      if (signInError) throw signInError;
-      
       const returnTo = location.state?.returnTo || '/account';
       navigate(returnTo, { replace: true });
     } catch (err) {
-      setError(err.message || 'Invalid email or password.');
+      setError(err.message || 'Invalid credentials.');
     } finally {
       setLoading(false);
     }
@@ -45,34 +62,82 @@ export default function CustomerLogin() {
             <p className="text-gray-500">Log in to manage your shipments.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
-              <input
-                type="email"
-                required
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:bg-white focus:outline-none transition-all"
-                placeholder="jane@example.com"
-              />
-            </div>
+          <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+            <button
+              onClick={() => { setLoginMethod('email'); setOtpSent(false); setError(null); }}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${loginMethod === 'email' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Email
+            </button>
+            <button
+              onClick={() => { setLoginMethod('phone'); setError(null); }}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${loginMethod === 'phone' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Phone Number
+            </button>
+          </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-semibold text-gray-700">Password</label>
-                <Link to="/forgot-password" className="text-xs text-[#0033a0] font-bold hover:underline">
-                  Forgot Password?
-                </Link>
-              </div>
-              <input
-                type="password"
-                required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:bg-white focus:outline-none transition-all"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {loginMethod === 'email' ? (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:bg-white focus:outline-none transition-all"
+                    placeholder="jane@example.com"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-semibold text-gray-700">Password</label>
+                    <Link to="/forgot-password" className="text-xs text-[#0033a0] font-bold hover:underline">
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:bg-white focus:outline-none transition-all"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                {!otpSent ? (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      required
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:bg-white focus:outline-none transition-all"
+                      placeholder="+233..."
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Enter 6-digit OTP</label>
+                    <input
+                      type="text"
+                      required
+                      value={form.otp}
+                      onChange={(e) => setForm({ ...form, otp: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:bg-white focus:outline-none transition-all text-center tracking-[0.5em] font-mono text-xl"
+                      placeholder="••••••"
+                      maxLength={6}
+                    />
+                    <button type="button" onClick={() => setOtpSent(false)} className="mt-2 text-xs text-[#0033a0] hover:underline font-semibold">Change phone number</button>
+                  </div>
+                )}
+              </>
+            )}
 
             {error && (
               <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl border border-red-100 flex items-center gap-2">
@@ -83,10 +148,10 @@ export default function CustomerLogin() {
 
             <button
               type="submit"
-              disabled={loading || !form.email || !form.password}
+              disabled={loading || (loginMethod === 'email' ? (!form.email || !form.password) : (otpSent ? !form.otp : !form.phone))}
               className="w-full bg-[#0033a0] text-white font-bold py-4 rounded-xl hover:bg-blue-800 transition-colors disabled:opacity-50 flex justify-center items-center mt-6"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Log In'}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (loginMethod === 'phone' && !otpSent ? 'Send OTP' : 'Log In')}
             </button>
           </form>
 

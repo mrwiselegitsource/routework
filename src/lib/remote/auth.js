@@ -46,6 +46,31 @@ export const remoteAuth = {
     return supabase.auth.signInWithPassword({ email, password })
   },
 
+  async customerSignInWithOtp({ phone }) {
+    return supabase.auth.signInWithOtp({ phone })
+  },
+
+  async customerVerifyOtp({ phone, token }) {
+    const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms' })
+    if (error) return { data, error }
+
+    // If verification succeeded and there's a user, ensure they have a customer profile
+    if (data.user) {
+      // Check if profile exists
+      const { data: profile } = await supabase.from('customers').select('id').eq('id', data.user.id).single();
+      if (!profile) {
+        // Create basic profile if they just signed up via OTP
+        await supabase.from('customers').insert({
+          id: data.user.id,
+          name: 'New Customer', // They can change this later in profile settings
+          email: '',
+          phone: phone,
+        });
+      }
+    }
+    return { data, error: null }
+  },
+
   async customerSignOut() {
     return supabase.auth.signOut()
   },

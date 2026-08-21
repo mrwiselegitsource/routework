@@ -85,8 +85,9 @@ export default function OrderDetail() {
       }, profile?.id)
 
       if (form.notify !== false) {
-        // Simulate sending notification
-        console.log(`Sending notification to customer for order ${id} - Status: ${form.status}`)
+        // Send actual notification via edge function
+        await db.sendNotification(id, 'status_update', `Your RouteWorks order ${id} status has been updated to: ${statusMeta(form.status).label}. ${form.location ? 'Location: ' + form.location : ''}`);
+        
         await db.addAuditLog({
           actor: profile?.id || 'system',
           action: 'sent_notification',

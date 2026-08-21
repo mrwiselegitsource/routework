@@ -96,6 +96,21 @@ export const remoteDb = {
     return data
   },
 
+  async sendNotification(orderId, type, message) {
+    // Invoke the edge function. 
+    // If it fails (e.g., Twilio not configured, or function not deployed yet), we catch it gracefully.
+    try {
+      const { data, error } = await supabase.functions.invoke('send-notification', {
+        body: { orderId, type, message }
+      });
+      if (error) console.error("Edge function error:", error);
+      return data;
+    } catch (e) {
+      console.warn("Could not send notification. Check edge function deployment.", e);
+      return null;
+    }
+  },
+
   async addTrackingEvent(orderId, { status, location, description }, addedBy) {
     const { data, error } = await supabase
       .from('tracking_events')

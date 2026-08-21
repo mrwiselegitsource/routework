@@ -71,6 +71,12 @@ export const localDb = {
     return order
   },
 
+  async sendNotification(orderId, type, message) {
+    await wait(200);
+    console.log(`[MOCK NOTIFICATION] Order: ${orderId} | Type: ${type} | Message: ${message}`);
+    return { success: true };
+  },
+
   async addTrackingEvent(orderId, { status, location, description }, addedBy) {
     const event = {
       id: uid('ev'),
