@@ -45,14 +45,23 @@ export function CustomerAuthProvider({ children }) {
     }
 
     let active = true
-    auth.getCustomerProfile(session.user.id).then(({ data, error }) => {
+    auth.getCustomerProfile(session.user.id).then(async ({ data, error }) => {
       if (!active) return
       if (error) {
-        // Profile might not exist yet (new signup) or they're a staff user — 
-        // set profile to a minimal object so they aren't stuck in a login loop
         console.warn('[customer auth] profile not found:', error.message)
-        // Create a minimal profile so session is still considered valid
-        setProfile({ id: session.user.id, email: session.user.email, name: session.user.email })
+        // Ensure customer profile exists in database to avoid foreign key constraints
+        try {
+          const { supabase } = await import('../lib/db');
+          await supabase.from('customers').insert({
+            id: session.user.id,
+            name: session.user.email?.split('@')[0] || 'New Customer',
+            email: session.user.email || '',
+          });
+        } catch (err) {
+          console.error('[customer auth] failed to create fallback profile', err);
+        }
+        // Set a minimal profile so session is still considered valid
+        setProfile({ id: session.user.id, email: session.user.email, name: session.user.email?.split('@')[0] || 'New Customer' })
       } else {
         setProfile(data)
       }
