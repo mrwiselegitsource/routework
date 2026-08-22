@@ -210,10 +210,11 @@ export default function Navbar() {
             ) : (
               <>
                 <Link to="/login" state={{ returnTo: location.pathname + location.search }} className="bg-gray-100 text-[#0f172a] font-bold text-center px-4 py-3 rounded-xl">Sign In</Link>
-                <Link to="/signup" state={{ returnTo: location.pathname + location.search }} className="bg-orange-500 text-white font-bold text-center px-4 py-3 rounded-xl">Create Account</Link>
               </>
             )}
-            <Link to="/admin" className="text-gray-400 font-medium text-center text-xs py-2">Admin Dashboard</Link>
+            {profile?.role === 'admin' && (
+              <Link to="/admin" className="text-gray-400 font-medium text-center text-xs py-2">Admin Dashboard</Link>
+            )}
           </div>
         </div>
       )}

@@ -89,8 +89,8 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
       // Navigate to cart for payment
       navigate('/cart');
     } catch (err) {
-      console.error(err);
-      setError('Failed to claim shipment. Please try again.');
+      console.error("Claim Error:", err);
+      setError(`Failed to claim shipment: ${err.message || 'Unknown error'}`);
     } finally {
       setAdding(false);
     }
@@ -107,11 +107,37 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
           This shipment has been claimed and delivery is being processed.
         </p>
         {recipientDetails && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 w-full mx-auto text-left space-y-3">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 w-full mx-auto text-left space-y-3 mb-4">
              <p className="text-sm"><span className="font-semibold text-gray-500">Name:</span> {recipientDetails.recipient_name}</p>
              <p className="text-sm"><span className="font-semibold text-gray-500">Phone:</span> {recipientDetails.recipient_phone}</p>
              <p className="text-sm"><span className="font-semibold text-gray-500">Address:</span> {recipientDetails.recipient_address}</p>
              <p className="text-sm"><span className="font-semibold text-gray-500">Region:</span> {recipientDetails.recipient_region}</p>
+          </div>
+        )}
+        
+        {paymentStatus === 'Unpaid' && (
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-center">
+            <h4 className="font-bold text-red-800 mb-2">Payment Required</h4>
+            <p className="text-sm text-red-700 mb-4">You have an outstanding balance for this shipment.</p>
+            <button 
+              onClick={async () => {
+                setAdding(true);
+                try {
+                  await addToCart(trackingId);
+                  navigate('/cart');
+                } catch (err) {
+                  setError('Failed to process payment request.');
+                } finally {
+                  setAdding(false);
+                }
+              }}
+              disabled={adding || loading}
+              className="bg-[#ff3b30] hover:bg-[#ff1a10] text-white font-bold py-3 px-6 rounded-xl w-full flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+            >
+              {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
+              Pay Outstanding Balance
+            </button>
+            {error && <p className="text-red-600 text-sm font-semibold mt-2">{error}</p>}
           </div>
         )}
       </div>
