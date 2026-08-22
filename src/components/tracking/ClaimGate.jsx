@@ -39,7 +39,7 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
   }, []);
 
   const isInCart = cart?.items?.some(i => i.order_id === trackingId);
-  const filteredPickupPoints = pickupPoints.filter(p => p.region_id === form.regionId && p.is_active);
+  const filteredPickupPoints = pickupPoints.filter(p => p.region_id === form.regionId && p.active !== false);
 
   let deliveryFee = 0;
   if (form.regionId) {
