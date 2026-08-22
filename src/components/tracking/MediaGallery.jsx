@@ -32,11 +32,11 @@ export default function MediaGallery({ media = [] }) {
   }, [media]);
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden mb-6">
+    <div className="bg-white overflow-hidden mb-6">
       {/* Main Display Area (Swipable) */}
       <div 
         ref={containerRef}
-        className="relative aspect-video bg-gray-100 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+        className="relative aspect-[4/5] md:aspect-square bg-gray-50 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {media.map((item, idx) => (
@@ -55,21 +55,43 @@ export default function MediaGallery({ media = [] }) {
               <img 
                 src={item.public_url || item.storage_path} 
                 alt={`Media ${idx + 1}`} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             )}
           </div>
         ))}
       </div>
 
-      {/* Dots Indicator */}
+      {/* Thumbnail Previews */}
       {media.length > 1 && (
-        <div className="flex justify-center gap-1.5 p-3 bg-white">
-          {media.map((_, idx) => (
-            <div 
+        <div className="flex justify-start gap-2 p-3 bg-white overflow-x-auto scrollbar-hide">
+          {media.map((item, idx) => (
+            <button
               key={idx}
-              className={`h-1.5 rounded-full transition-all duration-300 ${activeIndex === idx ? 'w-4 bg-[#0033a0]' : 'w-1.5 bg-gray-200'}`}
-            />
+              onClick={() => {
+                const container = containerRef.current;
+                if (container) {
+                  const scrollWidth = container.scrollWidth;
+                  const itemWidth = scrollWidth / media.length;
+                  container.scrollTo({ left: itemWidth * idx, behavior: 'smooth' });
+                }
+              }}
+              className={`shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
+                activeIndex === idx ? 'border-[#0033a0] opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
+              }`}
+            >
+              {item.media_type === 'video' ? (
+                <div className="w-full h-full bg-black flex items-center justify-center">
+                  <Play className="w-6 h-6 text-white opacity-70" />
+                </div>
+              ) : (
+                <img 
+                  src={item.public_url || item.storage_path} 
+                  alt={`Thumbnail ${idx + 1}`} 
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </button>
           ))}
         </div>
       )}
