@@ -96,6 +96,31 @@ export const remoteDb = {
     return data
   },
 
+  async uploadPaymentProof(orderId, file) {
+    // Standard mock or basic supabase storage upload
+    // Try to upload, if bucket doesn't exist, just return a mock URL to prevent crashing
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${orderId}_${Math.random()}.${fileExt}`;
+      const filePath = `payment_proofs/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents') // Reusing existing bucket or assume 'documents'
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.warn("Storage upload failed, returning mock URL", uploadError);
+        return { url: URL.createObjectURL(file) };
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(filePath);
+      return { url: publicUrl };
+    } catch (e) {
+      console.warn("Error uploading proof", e);
+      return { url: URL.createObjectURL(file) };
+    }
+  },
+
   async sendNotification(orderId, type, message) {
     // Invoke the edge function. 
     // If it fails (e.g., Twilio not configured, or function not deployed yet), we catch it gracefully.

@@ -71,6 +71,10 @@ export const localDb = {
     return order
   },
 
+  async uploadPaymentProof(orderId, file) {
+    return { url: URL.createObjectURL(file) };
+  },
+
   async sendNotification(orderId, type, message) {
     await wait(200);
     console.log(`[MOCK NOTIFICATION] Order: ${orderId} | Type: ${type} | Message: ${message}`);

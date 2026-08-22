@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Search, Phone, MessageCircle, Loader2, CheckCircle2 } from 'lucide-react'
+import { Search, Phone, MessageCircle, Loader2, CheckCircle2, CreditCard } from 'lucide-react'
 import { db, backendMode } from '../../lib/db'
 import { simulatePayment } from '../../lib/payments'
 import { statusMeta } from '../../data/statusIcons'
+import EverSendGateway from '../../components/payments/EverSendGateway'
 
 // Full spec: Section 6 of the build guide. Reads through db.getPublicOrder
 // (which mirrors the recipient-safe `public_order_lookup` view even in
@@ -15,6 +16,9 @@ export default function Track() {
   const [events, setEvents] = useState([])
 
   const [paying, setPaying] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('card')
+  const [showEverSend, setShowEverSend] = useState(false)
+  
   const [deliveryForm, setDeliveryForm] = useState({ recipient_name: '', recipient_phone: '', recipient_address: '', recipient_region: '' })
   const [deliveryErrors, setDeliveryErrors] = useState({})
   const [savingDelivery, setSavingDelivery] = useState(false)
@@ -45,6 +49,19 @@ export default function Track() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handlePaymentClick() {
+    if (paymentMethod === 'eversend') {
+      setShowEverSend(true);
+    } else {
+      handleSimulatePayment();
+    }
+  }
+
+  async function handleEverSendSuccess(proofUrl) {
+    setShowEverSend(false);
+    await refresh(order.order_id); // Order is now pending_verification
   }
 
   // Mock payment — see src/lib/payments.js. This never touches a real card
@@ -210,28 +227,64 @@ export default function Track() {
             </div>
           </div>
 
-          {/* Payment step — mocked (see src/lib/payments.js). Real Paystack
-              wiring is Section 8 / build-order step 8; nothing else here
-              depends on it being real. */}
+          {/* Payment step */}
           {showPaymentStep && (
             <div className="mt-6 rounded-xl border-2 border-dashed p-6" style={{ borderColor: 'var(--color-brand-orange)' }}>
               <p className="font-display text-sm font-bold text-[var(--color-ink)]">Payment due</p>
-              <p className="mt-1 font-body text-sm text-[var(--color-ink-soft)]">
+              <p className="mt-1 font-body text-sm text-[var(--color-ink-soft)] mb-4">
                 {order.currency} {order.amount_due} — your shipment has arrived and is ready for delivery once this is settled.
               </p>
+              
+              <div className="space-y-3 mb-4">
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 bg-white">
+                  <input 
+                    type="radio" 
+                    name="payment" 
+                    value="card"
+                    checked={paymentMethod === 'card'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-5 h-5 text-[var(--color-brand-orange)] focus:ring-[var(--color-brand-orange)]" 
+                  />
+                  <CreditCard className="w-6 h-6 text-gray-600" />
+                  <span className="font-semibold text-gray-800">Credit / Debit Card</span>
+                </label>
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 bg-white">
+                  <input 
+                    type="radio" 
+                    name="payment"
+                    value="eversend"
+                    checked={paymentMethod === 'eversend'}
+                    onChange={(e) => setPaymentMethod(e.target.value)} 
+                    className="w-5 h-5 text-[#0033a0] focus:ring-[#0033a0]" 
+                  />
+                  <div className="w-6 h-6 bg-[#0033a0] rounded flex items-center justify-center text-xs font-bold text-white">E</div>
+                  <span className="font-semibold text-gray-800">EverSend (Mobile Money)</span>
+                </label>
+              </div>
+
               <button
                 type="button"
-                onClick={handleSimulatePayment}
+                onClick={handlePaymentClick}
                 disabled={paying}
                 className="mt-4 inline-flex items-center gap-2 rounded-md px-5 py-2.5 font-body text-sm font-semibold text-white disabled:opacity-60"
                 style={{ background: 'var(--color-brand-orange)' }}
               >
                 {paying && <Loader2 size={16} className="animate-spin" />}
-                {paying ? 'Processing…' : 'Simulate payment (Mobile Money / card)'}
+                {paying ? 'Processing…' : 'Proceed to Payment'}
               </button>
-              <p className="mt-2 font-body text-xs text-[var(--color-ink-soft)]">
-                This is a placeholder — no real charge happens. It stands in for the Paystack checkout until that's wired up.
-              </p>
+            </div>
+          )}
+
+          {showEverSend && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.3s_ease-out]">
+              <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-hide">
+                <EverSendGateway 
+                  orderId={order.order_id}
+                  amountDue={order.amount_due}
+                  onSuccess={handleEverSendSuccess}
+                  onCancel={() => setShowEverSend(false)}
+                />
+              </div>
             </div>
           )}
 

@@ -6,6 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import EditAddressModal from '../components/checkout/EditAddressModal';
 import { saveAddressLocally, loadAddressLocally } from '../lib/local/address';
+import EverSendGateway from '../components/payments/EverSendGateway';
 
 export default function Cart() {
   const { cart, removeFromCart, clearCart, loading: cartLoading } = useCart();
@@ -90,22 +91,28 @@ export default function Cart() {
     setIsEditingAddress(false);
   };
 
-  const handleCheckout = async () => {
-    if (!shippingAddress.street || !shippingAddress.region || !shippingAddress.phone || !shippingAddress.contactName) {
-      setError("Please fill out the complete shipping address before placing the order.");
+  const handleCheckoutClick = () => {
+    if (!shippingAddress?.contactName) {
+      setError('Please provide a shipping address before checkout.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-
     setError(null);
+    if (paymentMethod === 'eversend') {
+      setShowEverSend(true);
+    } else {
+      processCheckout();
+    }
+  };
+
+  const processCheckout = async (proofUrl = null) => {
     setCheckingOut(true);
+    setError(null);
     
     const formattedAddress = `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.region}, Ghana`;
 
     try {
-      // Process all items in cart
       for (const item of items) {
-        // Update the order in the database with the master address details
         await db.updateOrderDetails(item.order_id, {
           recipient_name: shippingAddress.contactName,
           recipient_phone: shippingAddress.phone,
@@ -113,20 +120,25 @@ export default function Cart() {
           recipient_region: shippingAddress.region
         });
 
-        // 1. Mark as paid if it was unpaid
         if (item.order?.payment_status === 'unpaid') {
-          await db.updatePaymentStatus(item.order_id, 'paid', `CART-${cart.id}`);
+          if (paymentMethod === 'eversend') {
+            await db.updatePaymentStatus(item.order_id, 'pending_verification', proofUrl ? `EVERSEND_PROOF_${proofUrl}` : `EVERSEND_CART-${cart.id}`);
+          } else {
+            await db.updatePaymentStatus(item.order_id, 'paid', `CART-${cart.id}`);
+          }
         }
         
-        // 2. Add tracking event
         await db.addTrackingEvent(item.order_id, {
           status: 'delivery_arranged',
           location: 'Dispatch Center',
-          description: `Payment completed. Delivery arranged for: ${formattedAddress}.`
+          description: paymentMethod === 'eversend' 
+            ? `Payment proof submitted. Delivery arranging pending verification for: ${formattedAddress}.`
+            : `Payment completed. Delivery arranged for: ${formattedAddress}.`
         }, null);
       }
 
       await clearCart();
+      setShowEverSend(false);
       setSuccess(true);
       setTimeout(() => navigate('/account/orders'), 3000);
     } catch (err) {
@@ -218,14 +230,28 @@ export default function Cart() {
               <h2 className="text-sm font-bold text-gray-900 mb-4">Payment Methods</h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
-                  <input type="radio" name="payment" className="w-5 h-5 text-[#ff3b30] focus:ring-[#ff3b30]" defaultChecked />
+                  <input 
+                    type="radio" 
+                    name="payment" 
+                    value="card"
+                    checked={paymentMethod === 'card'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-5 h-5 text-[#ff3b30] focus:ring-[#ff3b30]" 
+                  />
                   <CreditCard className="w-6 h-6 text-gray-600" />
                   <span className="font-semibold text-gray-800">Credit / Debit Card</span>
                 </label>
-                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 opacity-50">
-                  <input type="radio" name="payment" disabled className="w-5 h-5" />
-                  <div className="w-6 h-6 bg-yellow-400 rounded flex items-center justify-center text-xs font-bold text-black">M</div>
-                  <span className="font-semibold text-gray-800">Mobile Money (Coming Soon)</span>
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                  <input 
+                    type="radio" 
+                    name="payment"
+                    value="eversend"
+                    checked={paymentMethod === 'eversend'}
+                    onChange={(e) => setPaymentMethod(e.target.value)} 
+                    className="w-5 h-5 text-[#0033a0] focus:ring-[#0033a0]" 
+                  />
+                  <div className="w-6 h-6 bg-[#0033a0] rounded flex items-center justify-center text-xs font-bold text-white">E</div>
+                  <span className="font-semibold text-gray-800">EverSend (Mobile Money)</span>
                 </label>
               </div>
             </div>
@@ -310,12 +336,25 @@ export default function Cart() {
             <span className="text-xl font-extrabold text-gray-900">GH₵ {totalDue.toFixed(2)}</span>
           </div>
           <button
-            onClick={handleCheckout}
+            onClick={handleCheckoutClick}
             disabled={checkingOut}
             className="bg-[#ff3b30] hover:bg-[#ff1a10] text-white font-bold px-8 py-3 rounded-full shadow-lg transition-colors disabled:opacity-50 min-w-[140px] flex items-center justify-center gap-2 text-base"
           >
             {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Place order'}
           </button>
+        </div>
+      )}
+
+      {showEverSend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.3s_ease-out]">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-hide">
+            <EverSendGateway 
+              orderId={`CART-${cart.id}`}
+              amountDue={totalDue}
+              onSuccess={(url) => processCheckout(url)}
+              onCancel={() => setShowEverSend(false)}
+            />
+          </div>
         </div>
       )}
 

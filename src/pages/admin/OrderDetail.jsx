@@ -313,14 +313,22 @@ export default function OrderDetail() {
           <div className="rounded-xl border border-[var(--color-line)] bg-white p-6">
             <div className="flex justify-between items-center mb-3">
               <h2 className="font-display text-sm font-bold text-[var(--color-ink)]">Shipment Status</h2>
-              {order.payment_status === 'unpaid' && isAdmin && (
+              {(order.payment_status === 'unpaid' || order.payment_status === 'pending_verification') && isAdmin && (
                 <button onClick={handleMarkPaid} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold hover:bg-green-200 transition">Mark Paid</button>
               )}
             </div>
             <dl className="space-y-2 font-body text-sm">
               <div className="flex justify-between"><dt className="text-[var(--color-ink-soft)]">Sender</dt><dd className="text-[var(--color-ink)]">{order.sender_name || '—'}</dd></div>
               <div className="flex justify-between"><dt className="text-[var(--color-ink-soft)]">Origin</dt><dd className="text-[var(--color-ink)]">{order.sender_country || '—'}</dd></div>
-              <div className="flex justify-between"><dt className="text-[var(--color-ink-soft)]">Payment</dt><dd className="capitalize text-[var(--color-ink)] font-semibold">{order.payment_status}</dd></div>
+              <div className="flex justify-between">
+                <dt className="text-[var(--color-ink-soft)]">Payment</dt>
+                <dd className="capitalize text-[var(--color-ink)] font-semibold flex items-center gap-2">
+                  {order.payment_status === 'pending_verification' && (
+                    <span className="text-[10px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded uppercase">Needs Review</span>
+                  )}
+                  {order.payment_status}
+                </dd>
+              </div>
             </dl>
           </div>
 
