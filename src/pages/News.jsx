@@ -3,6 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Calendar, ArrowRight, X } from 'lucide-react';
 import { db } from '../lib/db';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function News() {
   const [news, setNews] = useState([]);
@@ -68,8 +70,10 @@ export default function News() {
                           <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'} />
                         </div>
                       )}
-                      <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
-                        {item.content}
+                      <div className="prose prose-blue max-w-none text-gray-700">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {item.content}
+                        </ReactMarkdown>
                       </div>
                     </div>
                   )}

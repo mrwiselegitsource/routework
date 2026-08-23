@@ -24,13 +24,19 @@ export default function AdminNews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (editItem) {
-      await db.updateNews(editItem.id, { title, excerpt, content, image_url: imageUrl })
-    } else {
-      await db.addNews({ title, excerpt, content, image_url: imageUrl }, profile?.id)
+    try {
+      if (editItem) {
+        await db.updateNews(editItem.id, { title, excerpt, content, image_url: imageUrl || null })
+      } else {
+        await db.addNews({ title, excerpt, content, image_url: imageUrl || null }, profile?.id)
+      }
+      resetForm()
+      fetchNews()
+      alert("Published successfully!")
+    } catch (err) {
+      console.error("Error publishing news:", err)
+      alert("Failed to publish: " + err.message)
     }
-    resetForm()
-    fetchNews()
   }
 
   const handleEdit = (item) => {
@@ -75,12 +81,13 @@ export default function AdminNews() {
             <input required type="text" value={excerpt} onChange={e => setExcerpt(e.target.value)} className="w-full p-2 border rounded-md" />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Main Cover Image URL (Optional)</label>
             <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="w-full p-2 border rounded-md" placeholder="https://..." />
           </div>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Content</label>
-            <textarea required rows="6" value={content} onChange={e => setContent(e.target.value)} className="w-full p-2 border rounded-md"></textarea>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Content (Supports Markdown)</label>
+            <p className="text-xs text-gray-500 mb-2">You can add images in between paragraphs using: <code>![Description](https://image-url.com/img.png)</code></p>
+            <textarea required rows="10" value={content} onChange={e => setContent(e.target.value)} className="w-full p-2 border rounded-md font-mono text-sm"></textarea>
           </div>
           <button type="submit" className="bg-[var(--color-brand-orange)] text-white px-6 py-2 rounded-md font-semibold">
             {editItem ? 'Save Changes' : 'Publish Post'}
