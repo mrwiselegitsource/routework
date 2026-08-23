@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { User, Package, ShoppingCart, Search, LogOut } from 'lucide-react';
+import { User, Package, ShoppingCart, Search, LogOut, Mail } from 'lucide-react';
 import { auth } from '../../lib/db';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
+import { useCustomerMessages } from '../../context/CustomerMessagesContext';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
@@ -10,6 +11,7 @@ import Footer from '../Footer';
 const CUSTOMER_LINKS = [
   { to: '/track', label: 'Track', icon: Search },
   { to: '/account/orders', label: 'My Orders', icon: Package },
+  { to: '/account/messages', label: 'Inbox', icon: Mail },
   { to: '/cart', label: 'Cart', icon: ShoppingCart },
   { to: '/account', label: 'Account', icon: User, end: true },
 ];
@@ -18,6 +20,7 @@ export default function CustomerLayout() {
   const navigate = useNavigate();
   const { profile } = useCustomerAuth();
   const { cart } = useCart();
+  const { unreadCount } = useCustomerMessages();
 
   const handleLogout = async () => {
     await auth.customerSignOut();
@@ -65,6 +68,11 @@ export default function CustomerLayout() {
                         {cart.items.length}
                       </span>
                     )}
+                    {link.to === '/account/messages' && unreadCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        {unreadCount}
+                      </span>
+                    )}
                   </NavLink>
                 ))}
                 
@@ -105,6 +113,9 @@ export default function CustomerLayout() {
               <span className="text-[10px] font-semibold">{link.label}</span>
               {link.to === '/cart' && cart?.items?.length > 0 && (
                 <span className="absolute top-0 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+              {link.to === '/account/messages' && unreadCount > 0 && (
+                <span className="absolute top-0 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
               )}
             </NavLink>
           ))}

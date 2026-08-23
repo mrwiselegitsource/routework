@@ -33,7 +33,10 @@ import ForgotPassword from './pages/ForgotPassword';
 // Customer Protected Pages
 import CustomerAccount from './pages/CustomerAccount';
 import CustomerOrders from './pages/CustomerOrders';
+import CustomerMessages from './pages/CustomerMessages';
 import Cart from './pages/Cart';
+
+import { CustomerMessagesProvider } from './context/CustomerMessagesContext';
 
 // Admin imports
 import RequireAuth from './components/auth/RequireAuth';
@@ -108,9 +111,10 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Customer Protected Routes */}
-        <Route element={<RequireCustomerAuth><CustomerLayout /></RequireCustomerAuth>}>
+        <Route element={<RequireCustomerAuth><CustomerMessagesProvider><CustomerLayout /></CustomerMessagesProvider></RequireCustomerAuth>}>
           <Route path="/account" element={<CustomerAccount />} />
           <Route path="/account/orders" element={<CustomerOrders />} />
+          <Route path="/account/messages" element={<CustomerMessages />} />
           <Route path="/cart" element={<Cart />} />
         </Route>
 

@@ -24,6 +24,9 @@ export default function OrderDetail() {
   const [editValues, setEditValues] = useState({})
   const [savingEdit, setSavingEdit] = useState(false)
 
+  const [messageForm, setMessageForm] = useState({ show: false, title: '', content: '', type: 'system', sending: false })
+  const [messageSuccess, setMessageSuccess] = useState(false)
+
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
 
@@ -141,6 +144,28 @@ export default function OrderDetail() {
     } catch(err) { alert(err.message) }
   }
 
+  async function handleSendMessage(e) {
+    e.preventDefault();
+    if (!order?.customer_id) return;
+    
+    setMessageForm(prev => ({ ...prev, sending: true }));
+    try {
+      await db.createCustomerMessage({
+        customer_id: order.customer_id,
+        order_id: id,
+        title: messageForm.title,
+        content: messageForm.content,
+        type: messageForm.type
+      });
+      setMessageForm({ show: false, title: '', content: '', type: 'system', sending: false });
+      setMessageSuccess(true);
+      setTimeout(() => setMessageSuccess(false), 3000);
+    } catch (err) {
+      alert(err.message);
+      setMessageForm(prev => ({ ...prev, sending: false }));
+    }
+  }
+
   async function handleUploadMedia(e) {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -205,6 +230,74 @@ export default function OrderDetail() {
             </button>
             {!isAdmin && <p className="text-xs text-gray-500 mt-2">Only administrators can edit order details.</p>}
           </form>
+
+          {/* Send Message */}
+          {order.customer_id && (
+            <div className="rounded-xl border border-[var(--color-line)] bg-white p-6">
+              <h2 className="font-display text-sm font-bold text-[var(--color-ink)] mb-4">Message Customer</h2>
+              {!messageForm.show ? (
+                <button
+                  onClick={() => setMessageForm(prev => ({ ...prev, show: true }))}
+                  className="rounded-md px-4 py-2 font-body text-sm font-semibold text-white bg-[#0033a0] hover:opacity-90"
+                >
+                  Send a Message
+                </button>
+              ) : (
+                <form onSubmit={handleSendMessage} className="space-y-4">
+                  <div>
+                    <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Title</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={messageForm.title} 
+                      onChange={e => setMessageForm({...messageForm, title: e.target.value})} 
+                      className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" 
+                    />
+                  </div>
+                  <div>
+                    <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Content</label>
+                    <textarea 
+                      required 
+                      rows={4}
+                      value={messageForm.content} 
+                      onChange={e => setMessageForm({...messageForm, content: e.target.value})} 
+                      className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" 
+                    />
+                  </div>
+                  <div>
+                    <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Type</label>
+                    <select
+                      value={messageForm.type}
+                      onChange={e => setMessageForm({...messageForm, type: e.target.value})}
+                      className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm"
+                    >
+                      <option value="system">System Update</option>
+                      <option value="payment">Payment Reminder</option>
+                      <option value="alert">Action Required / Alert</option>
+                      <option value="success">Success / Confirmation</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      type="submit" 
+                      disabled={messageForm.sending} 
+                      className="rounded-md px-4 py-2 font-body text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-60"
+                    >
+                      {messageForm.sending ? 'Sending...' : 'Send Message'}
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setMessageForm(prev => ({ ...prev, show: false }))}
+                      className="rounded-md px-4 py-2 font-body text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {messageSuccess && <p className="text-green-600 text-xs mt-2 font-bold">Message sent successfully!</p>}
+                </form>
+              )}
+            </div>
+          )}
 
           {/* Event history */}
           <div className="rounded-xl border border-[var(--color-line)] bg-white p-6">

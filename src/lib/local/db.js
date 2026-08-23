@@ -516,5 +516,32 @@ export const localDb = {
       uniqueVisitors,
       topPages
     }
+  },
+
+  // --- CUSTOMER MESSAGES ---
+  async getCustomerMessages(customerId) {
+    if (!table.customer_messages) table.customer_messages = []
+    return table.customer_messages
+      .filter(m => m.customer_id === customerId)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  },
+
+  async markMessageRead(messageId) {
+    if (!table.customer_messages) return
+    const msg = table.customer_messages.find(m => m.id === messageId)
+    if (msg) msg.is_read = true
+  },
+
+  async createCustomerMessage(fields) {
+    if (!table.customer_messages) table.customer_messages = []
+    const newMsg = {
+      id: uid('msg'),
+      is_read: false,
+      created_at: new Date().toISOString(),
+      type: 'system',
+      ...fields
+    }
+    table.customer_messages = [newMsg, ...table.customer_messages]
+    return newMsg
   }
 }

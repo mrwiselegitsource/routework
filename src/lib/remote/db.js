@@ -683,5 +683,39 @@ export const remoteDb = {
       uniqueVisitors,
       topPages
     }
+  },
+
+  // --- CUSTOMER MESSAGES ---
+  async getCustomerMessages(customerId) {
+    const { data, error } = await supabase
+      .from('customer_messages')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+    
+    // Fail gracefully if table doesn't exist yet
+    if (error && error.code === '42P01') return []
+    if (error) throw error
+    return data ?? []
+  },
+
+  async markMessageRead(messageId) {
+    const { error } = await supabase
+      .from('customer_messages')
+      .update({ is_read: true })
+      .eq('id', messageId)
+    
+    if (error) throw error
+  },
+
+  async createCustomerMessage(fields) {
+    const { data, error } = await supabase
+      .from('customer_messages')
+      .insert(fields)
+      .select()
+      .single()
+      
+    if (error) throw error
+    return data
   }
 }
