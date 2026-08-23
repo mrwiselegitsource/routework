@@ -634,13 +634,19 @@ export const remoteDb = {
 
   async addNews(fields, authorId) {
     const { data, error } = await supabase.from('news').insert({ ...fields, author_id: authorId }).select().single()
-    if (error) throw error
+    if (error) {
+      console.error('Error adding news:', error)
+      throw error
+    }
     return data
   },
 
   async updateNews(id, fields) {
     const { data, error } = await supabase.from('news').update(fields).eq('id', id).select().single()
-    if (error) throw error
+    if (error) {
+      console.error('Error updating news:', error)
+      throw error
+    }
     return data
   },
 
