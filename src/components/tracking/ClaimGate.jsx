@@ -146,56 +146,53 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
 
   // Not Claimed yet
   return (
-    <div className="mt-8 glass-card rounded-2xl p-6 sm:p-8 animate-slide-up border-t-4 border-t-brand-purple">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 pb-4 border-b border-gray-100">
+    <div className="mt-4 bg-white p-4 animate-slide-up border border-gray-200">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 border-b border-gray-100 pb-2">
         <div>
-          <h3 className="text-xl font-display font-bold text-gray-900 premium-gradient-text">Ready to Receive?</h3>
-          <p className="text-sm text-gray-500 mt-1">Provide your delivery preferences to proceed.</p>
+          <h3 className="text-sm font-bold text-gray-900">Delivery Preferences</h3>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-2 mb-4">
         <button
           onClick={() => setDeliveryMode('pickup')}
-          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+          className={`flex items-center gap-2 p-2 border transition-all ${
             deliveryMode === 'pickup'
-              ? 'border-brand-purple bg-purple-50/50 shadow-sm'
-              : 'border-gray-200 hover:border-brand-purple hover:bg-gray-50'
+              ? 'border-[#0033a0] bg-blue-50/30'
+              : 'border-gray-200'
           }`}
         >
-          <div className={`p-2 rounded-lg ${deliveryMode === 'pickup' ? 'bg-brand-purple text-white' : 'bg-gray-100 text-gray-500'}`}>
-            <MapPin className="w-5 h-5" />
+          <div className={`p-1 ${deliveryMode === 'pickup' ? 'text-[#0033a0]' : 'text-gray-400'}`}>
+            <MapPin className="w-4 h-4" />
           </div>
           <div className="text-left">
-            <div className="font-semibold text-gray-900">Pickup Station</div>
-            <div className="text-xs text-gray-500 mt-0.5">Collect at your convenience</div>
+            <div className="text-sm font-bold text-gray-900">Pickup</div>
           </div>
         </button>
         <button
           onClick={() => setDeliveryMode('home')}
-          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+          className={`flex items-center gap-2 p-2 border transition-all ${
             deliveryMode === 'home'
-              ? 'border-brand-purple bg-purple-50/50 shadow-sm'
-              : 'border-gray-200 hover:border-brand-purple hover:bg-gray-50'
+              ? 'border-[#0033a0] bg-blue-50/30'
+              : 'border-gray-200'
           }`}
         >
-          <div className={`p-2 rounded-lg ${deliveryMode === 'home' ? 'bg-brand-purple text-white' : 'bg-gray-100 text-gray-500'}`}>
-            <ShoppingCart className="w-5 h-5" />
+          <div className={`p-1 ${deliveryMode === 'home' ? 'text-[#0033a0]' : 'text-gray-400'}`}>
+            <ShoppingCart className="w-4 h-4" />
           </div>
           <div className="text-left">
-            <div className="font-semibold text-gray-900">Home Delivery</div>
-            <div className="text-xs text-gray-500 mt-0.5">Delivered straight to you</div>
+            <div className="text-sm font-bold text-gray-900">Home</div>
           </div>
         </button>
       </div>
 
-      <div className="space-y-4 mb-8">
+      <div className="space-y-3 mb-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Region</label>
+          <label className="block text-xs font-bold text-gray-700 mb-1">Region</label>
           <select 
             value={form.regionId}
             onChange={(e) => setForm({ ...form, regionId: e.target.value, pickupPointId: '' })}
-            className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-brand-purple focus:outline-none"
+            className="w-full p-2 border border-gray-200 text-sm focus:border-[#0033a0] focus:outline-none"
           >
             {regions.map(r => (
               <option key={r.id} value={r.id}>{r.name}</option>
@@ -205,11 +202,11 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
 
         {deliveryMode === 'pickup' ? (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Select Location</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Select Location</label>
             <select 
               value={form.pickupPointId}
               onChange={(e) => setForm({ ...form, pickupPointId: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-brand-purple focus:outline-none"
+              className="w-full p-2 border border-gray-200 text-sm focus:border-[#0033a0] focus:outline-none"
             >
               <option value="">-- Choose a location --</option>
               {filteredPickupPoints.map(p => (
@@ -217,44 +214,45 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
               ))}
             </select>
             {filteredPickupPoints.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">No active pickup points in this region.</p>
+              <p className="text-xs text-red-500 mt-1">No active pickup points.</p>
             )}
           </div>
         ) : (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Address</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Full Address</label>
             <textarea 
-              rows="3"
-              placeholder="Enter detailed delivery address..."
+              rows="2"
+              placeholder="Detailed delivery address..."
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-brand-purple focus:outline-none resize-none"
+              className="w-full p-2 border border-gray-200 text-sm focus:border-[#0033a0] focus:outline-none resize-none"
             ></textarea>
           </div>
         )}
         
         {error && (
-          <div className="p-4 bg-red-50 text-red-700 rounded-xl mb-6 border border-red-100 flex items-start gap-3">
-            <div className="p-1 bg-red-100 rounded-full"><AlertTriangle className="w-4 h-4 text-red-600" /></div>
+          <div className="p-2 bg-red-50 text-red-700 mb-4 border border-red-100 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5" />
             <span className="text-sm">{error}</span>
           </div>
         )}
       </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col w-full sm:w-auto">
-          <span className="text-sm text-gray-500 font-medium">Estimated Delivery Fee</span>
-          <span className="text-2xl font-bold text-brand-purple">
-            {deliveryFee === 0 ? 'FREE' : `GHS ${deliveryFee.toFixed(2)}`}
+      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-4">
+        <div className="flex flex-col">
+          <span className="text-xs text-gray-500">Delivery Fee</span>
+          <span className="text-lg font-bold text-gray-900">
+            {deliveryFee === 0 ? 'FREE' : `GH₵ ${deliveryFee.toFixed(2)}`}
           </span>
         </div>
-        <button
+        <button 
           onClick={handleClaimAndAddToCart}
-          disabled={adding}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 premium-button px-8 py-3.5 rounded-xl font-bold shadow-md pulse-glow-btn disabled:opacity-70 disabled:cursor-not-allowed disabled:animation-none"
+          disabled={adding || loading || (deliveryMode === 'pickup' ? !form.pickupPointId : !form.address)}
+          className="bg-[#ff3b30] hover:bg-[#e0352b] text-white font-bold px-6 py-2 rounded-full flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-          Claim & Continue
+          {adding ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (
+            <>Claim <ChevronRight className="w-4 h-4" /></>
+          )}
         </button>
       </div>
     </div>

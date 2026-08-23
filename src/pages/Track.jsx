@@ -193,7 +193,7 @@ export default function Track() {
       </Helmet>
 
       {/* Search Header */}
-      <div className="relative pt-10 pb-12 md:pt-20 md:pb-32 px-4 overflow-hidden">
+      <div className="relative py-8 md:py-12 px-4 overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/images/track-hero.jpg"
@@ -201,15 +201,14 @@ export default function Track() {
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
-          <div className="hidden w-full h-full bg-brand-purple-deep flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
+          <div className="hidden w-full h-full bg-[#001b57] flex-col items-center justify-center text-white/50 border border-white/20">
             Missing Image: public/images/track-hero.jpg
           </div>
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-deep/90 to-brand-purple/80 backdrop-blur-[4px]"></div>
+          <div className="absolute inset-0 bg-[#001b57]/90"></div>
         </div>
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <span className="text-brand-orange font-bold tracking-widest uppercase text-sm mb-2 md:mb-4 block animate-[fadeIn_0.5s_ease-out]">PREMIUM TRACKING</span>
-          <h1 className="text-4xl md:text-6xl font-display font-extrabold text-white mb-4 md:mb-6 animate-[fadeIn_0.7s_ease-out] drop-shadow-md">Track & Trace</h1>
-          <p className="text-lg md:text-2xl text-purple-100 max-w-3xl mx-auto font-light animate-[fadeIn_0.9s_ease-out]">
+        <div className="container mx-auto max-w-2xl text-center relative z-10">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Track & Trace</h1>
+          <p className="text-sm md:text-base text-blue-100 max-w-xl mx-auto font-light">
             Monitor the status and location of your shipments in real-time.
           </p>
         </div>
@@ -218,21 +217,20 @@ export default function Track() {
       {/* Edge-to-Edge Tracking Bar */}
       <div className="w-full bg-white border-b border-gray-200 animate-[fadeIn_1.1s_ease-out]">
         <div className="container mx-auto max-w-4xl px-4 py-6 md:py-8">
-          <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
+          <form onSubmit={handleSearch} className="flex gap-2">
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Enter Tracking Number (e.g. RW-DEMO01)"
-              className="flex-1 px-6 py-4 md:py-5 rounded-xl text-lg text-gray-800 bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:border-brand-purple transition-all shadow-inner"
+              placeholder="Tracking Number (e.g. RW-DEMO)"
+              className="flex-1 px-4 py-3 rounded text-base text-gray-800 bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:border-[#0033a0]"
             />
             <button
               type="submit"
               disabled={isLoading}
-              className="premium-button text-white font-bold px-8 py-4 md:py-5 rounded-xl flex items-center justify-center disabled:opacity-70 min-w-[160px]"
+              className="bg-[#0033a0] text-white font-bold px-6 py-3 rounded flex items-center justify-center disabled:opacity-70 whitespace-nowrap"
             >
-              {isLoading ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : <Search className="w-6 h-6 mr-2" />}
-              {isLoading ? 'Searching...' : 'Track'}
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Track'}
             </button>
           </form>
         </div>
