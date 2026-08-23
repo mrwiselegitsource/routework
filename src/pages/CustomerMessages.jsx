@@ -33,12 +33,12 @@ export default function CustomerMessages() {
         <title>Messages - RouteWorks</title>
       </Helmet>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Message Center</h1>
-        <p className="text-gray-500">Notifications, payment reminders, and system alerts.</p>
+      <div className="mb-6 px-4 md:px-0">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1">Message Center</h1>
+        <p className="text-sm md:text-base text-gray-500">Notifications, payment reminders, and system alerts.</p>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px] flex flex-col md:flex-row">
+      <div className="-mx-4 md:mx-0 bg-white md:rounded-lg shadow-sm border-y md:border-x border-gray-200 overflow-hidden min-h-[500px] flex flex-col md:flex-row">
         
         {/* Messages List */}
         <div className={`w-full md:w-1/3 border-r border-gray-100 flex flex-col ${selectedMessage ? 'hidden md:flex' : 'flex'}`}>
@@ -90,27 +90,27 @@ export default function CustomerMessages() {
         {/* Message Detail */}
         <div className={`w-full md:w-2/3 flex flex-col bg-gray-50/30 ${!selectedMessage ? 'hidden md:flex' : 'flex'}`}>
           {selectedMessage ? (
-            <div className="p-6 md:p-8 animate-[fadeIn_0.3s_ease-out]">
+            <div className="p-4 md:p-8 animate-[fadeIn_0.3s_ease-out]">
               <button 
                 onClick={() => setSelectedMessage(null)}
-                className="md:hidden mb-6 text-sm font-bold text-[#0033a0] flex items-center gap-1"
+                className="md:hidden mb-4 text-sm font-bold text-[#0033a0] flex items-center gap-1"
               >
                 &larr; Back to Inbox
               </button>
               
-              <div className="flex items-start gap-4 mb-8">
-                <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="bg-white p-2.5 rounded-md shadow-sm border border-gray-100">
                   {getIconForType(selectedMessage.type)}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedMessage.title}</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900">{selectedMessage.title}</h2>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">
                     Received on {new Date(selectedMessage.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <div className="bg-white rounded-sm md:rounded-md p-4 md:p-6 shadow-sm border border-gray-100 text-gray-700 text-sm md:text-base leading-relaxed whitespace-pre-wrap">
                 {selectedMessage.content}
               </div>
               
