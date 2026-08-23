@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, CheckCircle2, ShoppingCart, Loader2, MapPin } from 'lucide-react';
+import { CreditCard, CheckCircle2, ShoppingCart, Loader2, MapPin, AlertTriangle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { db } from '../../lib/db';
@@ -146,138 +146,117 @@ export default function ClaimGate({ trackingId, paymentStatus, claimStatus, amou
 
   // Not Claimed yet
   return (
-    <div className="bg-blue-50/30 rounded-3xl border border-blue-100 p-6 md:p-10 mt-8 text-center">
-      <div className="w-16 h-16 bg-blue-100 text-[#0033a0] rounded-full flex items-center justify-center mx-auto mb-4">
-        <ShoppingCart size={32} />
+    <div className="mt-8 glass-card rounded-2xl p-6 sm:p-8 animate-slide-up border-t-4 border-t-brand-purple">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 pb-4 border-b border-gray-100">
+        <div>
+          <h3 className="text-xl font-display font-bold text-gray-900 premium-gradient-text">Ready to Receive?</h3>
+          <p className="text-sm text-gray-500 mt-1">Provide your delivery preferences to proceed.</p>
+        </div>
       </div>
-      
-      <h3 className="text-2xl font-bold text-blue-900 mb-2">Ready to Claim?</h3>
-      <p className="text-gray-600 mb-6 max-w-md mx-auto">
-        Select your delivery preferences below to claim this shipment and proceed to payment.
-      </p>
 
-      {/* Location Selection Form inside ClaimGate */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-left w-full mx-auto mb-6">
-        <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-[#0033a0]" /> Delivery Details
-        </h4>
-        
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <button
+          onClick={() => setDeliveryMode('pickup')}
+          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+            deliveryMode === 'pickup'
+              ? 'border-brand-purple bg-purple-50/50 shadow-sm'
+              : 'border-gray-200 hover:border-brand-purple hover:bg-gray-50'
+          }`}
+        >
+          <div className={`p-2 rounded-lg ${deliveryMode === 'pickup' ? 'bg-brand-purple text-white' : 'bg-gray-100 text-gray-500'}`}>
+            <MapPin className="w-5 h-5" />
+          </div>
+          <div className="text-left">
+            <div className="font-semibold text-gray-900">Pickup Station</div>
+            <div className="text-xs text-gray-500 mt-0.5">Collect at your convenience</div>
+          </div>
+        </button>
+        <button
+          onClick={() => setDeliveryMode('home')}
+          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+            deliveryMode === 'home'
+              ? 'border-brand-purple bg-purple-50/50 shadow-sm'
+              : 'border-gray-200 hover:border-brand-purple hover:bg-gray-50'
+          }`}
+        >
+          <div className={`p-2 rounded-lg ${deliveryMode === 'home' ? 'bg-brand-purple text-white' : 'bg-gray-100 text-gray-500'}`}>
+            <ShoppingCart className="w-5 h-5" />
+          </div>
+          <div className="text-left">
+            <div className="font-semibold text-gray-900">Home Delivery</div>
+            <div className="text-xs text-gray-500 mt-0.5">Delivered straight to you</div>
+          </div>
+        </button>
+      </div>
+
+      <div className="space-y-4 mb-8">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Region</label>
+          <select 
+            value={form.regionId}
+            onChange={(e) => setForm({ ...form, regionId: e.target.value, pickupPointId: '' })}
+            className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-brand-purple focus:outline-none"
+          >
+            {regions.map(r => (
+              <option key={r.id} value={r.id}>{r.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {deliveryMode === 'pickup' ? (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Region</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Select Location</label>
             <select 
-              value={form.regionId}
-              onChange={(e) => setForm({ ...form, regionId: e.target.value, pickupPointId: '' })}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:outline-none"
+              value={form.pickupPointId}
+              onChange={(e) => setForm({ ...form, pickupPointId: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-brand-purple focus:outline-none"
             >
-              {regions.map(r => (
-                <option key={r.id} value={r.id}>{r.name}</option>
+              <option value="">-- Choose a location --</option>
+              {filteredPickupPoints.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
+            {filteredPickupPoints.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">No active pickup points in this region.</p>
+            )}
           </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setDeliveryMode('pickup')}
-              className={`py-3 px-2 rounded-xl text-sm font-semibold transition-colors border-2 ${
-                deliveryMode === 'pickup' 
-                  ? 'bg-[#0033a0] border-[#0033a0] text-white' 
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-[#0033a0]/30'
-              }`}
-            >
-              Pickup Point
-            </button>
-            <button
-              type="button"
-              onClick={() => setDeliveryMode('home')}
-              className={`py-3 px-2 rounded-xl text-sm font-semibold transition-colors border-2 ${
-                deliveryMode === 'home' 
-                  ? 'bg-[#0033a0] border-[#0033a0] text-white' 
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-[#0033a0]/30'
-              }`}
-            >
-              Home Delivery
-            </button>
-          </div>
-
-          {deliveryMode === 'pickup' ? (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Select Location</label>
-              <select 
-                value={form.pickupPointId}
-                onChange={(e) => setForm({ ...form, pickupPointId: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:outline-none"
-              >
-                <option value="">-- Choose a location --</option>
-                {filteredPickupPoints.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-              {filteredPickupPoints.length === 0 && (
-                <p className="text-xs text-red-500 mt-1">No active pickup points in this region.</p>
-              )}
-            </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Address</label>
-              <textarea 
-                rows="3"
-                placeholder="Enter detailed delivery address..."
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#0033a0] focus:outline-none resize-none"
-              ></textarea>
-            </div>
-          )}
-
-          {error && <p className="text-red-500 text-sm font-semibold mt-2">{error}</p>}
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 w-full mx-auto mb-6 flex flex-col gap-2 text-left">
-        {paymentStatus === 'Unpaid' && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-600 flex items-center gap-2">
-              Shipment Balance
-            </span>
-            <span className="font-bold text-gray-900">GH₵ {amountDue}</span>
+        ) : (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Address</label>
+            <textarea 
+              rows="3"
+              placeholder="Enter detailed delivery address..."
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-brand-purple focus:outline-none resize-none"
+            ></textarea>
           </div>
         )}
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-600 flex items-center gap-2">
-            Delivery Fee
-          </span>
-          <span className="font-bold text-gray-900">GH₵ {(parseFloat(deliveryFee) || 0).toFixed(2)}</span>
-        </div>
-        <div className="flex items-center justify-between border-t border-gray-100 pt-2 mt-1">
-          <span className="text-sm font-bold text-gray-900 flex items-center gap-2">
-            Total Due Today
-          </span>
-          <span className="font-bold text-[#0033a0] text-lg">
-            GH₵ {((paymentStatus === 'Unpaid' ? (parseFloat(amountDue) || 0) : 0) + (parseFloat(deliveryFee) || 0)).toFixed(2)}
-          </span>
-        </div>
+        
+        {error && (
+          <div className="p-4 bg-red-50 text-red-700 rounded-xl mb-6 border border-red-100 flex items-start gap-3">
+            <div className="p-1 bg-red-100 rounded-full"><AlertTriangle className="w-4 h-4 text-red-600" /></div>
+            <span className="text-sm">{error}</span>
+          </div>
+        )}
       </div>
 
-      {isInCart ? (
-        <Link 
-          to="/cart"
-          className="inline-flex items-center justify-center w-full bg-green-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-600 transition-colors gap-2"
-        >
-          <CheckCircle2 className="w-5 h-5" />
-          Added to Cart — Proceed to Checkout
-        </Link>
-      ) : (
-        <button 
+      <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col w-full sm:w-auto">
+          <span className="text-sm text-gray-500 font-medium">Estimated Delivery Fee</span>
+          <span className="text-2xl font-bold text-brand-purple">
+            {deliveryFee === 0 ? 'FREE' : `GHS ${deliveryFee.toFixed(2)}`}
+          </span>
+        </div>
+        <button
           onClick={handleClaimAndAddToCart}
-          disabled={adding || loading}
-          className="w-full mx-auto bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          disabled={adding}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 premium-button px-8 py-3.5 rounded-xl font-bold shadow-md pulse-glow-btn disabled:opacity-70 disabled:cursor-not-allowed disabled:animation-none"
         >
-          {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingCart className="w-5 h-5" />}
-          Claim & Add to Cart
+          {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+          Claim & Continue
         </button>
-      )}
+      </div>
     </div>
   );
 }

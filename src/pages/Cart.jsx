@@ -169,14 +169,14 @@ export default function Cart() {
   }
 
   return (
-    <div className="bg-[#f2f2f2] min-h-screen pb-24 md:py-8">
-      {/* Mobile Header (AliExpress style) */}
-      <div className="bg-white px-4 py-3 sticky top-0 z-10 md:hidden flex items-center">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2">
+    <div className="min-h-screen pb-24 md:py-12" style={{ backgroundColor: 'var(--color-paper)' }}>
+      {/* Mobile Header */}
+      <div className="glass-panel px-4 py-4 sticky top-0 z-30 md:hidden flex items-center justify-between mb-4 border-b-0 shadow-sm">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
           <ChevronLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 mx-auto">Checkout</h1>
-        <div className="w-8"></div> {/* Spacer */}
+        <h1 className="text-lg font-display font-bold text-gray-900 absolute left-1/2 -translate-x-1/2">Secure Checkout</h1>
+        <div className="w-10"></div>
       </div>
 
       <div className="max-w-3xl mx-auto px-3 md:px-4 space-y-3 pt-3 md:pt-0">
@@ -203,33 +203,35 @@ export default function Cart() {
             {/* Shipping Address Block */}
             <div 
               onClick={() => setIsEditingAddress(true)}
-              className="bg-white rounded-2xl p-4 md:p-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
+              className="glass-card rounded-2xl p-5 md:p-6 cursor-pointer group flex items-start justify-between relative overflow-hidden"
             >
+              <div className="absolute top-0 left-0 w-1 h-full bg-brand-purple"></div>
               <div>
-                <h2 className="text-sm font-bold text-gray-900 mb-2">Shipping address</h2>
+                <h2 className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">Shipping Address</h2>
                 {shippingAddress.contactName ? (
-                  <div className="space-y-1">
-                    <p className="text-base font-bold text-gray-900">
+                  <div className="space-y-1.5">
+                    <p className="text-lg font-bold text-gray-900 group-hover:text-brand-purple transition-colors">
                       {shippingAddress.contactName}
                     </p>
-                    <p className="text-sm text-gray-500 font-mono">+233 {shippingAddress.phone}</p>
-                    <p className="text-sm text-gray-500">
-                      {shippingAddress.street}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {shippingAddress.city ? `${shippingAddress.city}, ` : ''}{shippingAddress.region}, Ghana
+                    <p className="text-sm text-gray-500 font-mono flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> +233 {shippingAddress.phone}</p>
+                    <p className="text-sm text-gray-600 mt-2 flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <span>
+                        {shippingAddress.street}<br/>
+                        {shippingAddress.city ? `${shippingAddress.city}, ` : ''}{shippingAddress.region}, Ghana
+                      </span>
                     </p>
                   </div>
                 ) : (
-                  <p className="text-red-500 font-semibold text-sm">Please add a shipping address</p>
+                  <p className="text-brand-orange font-semibold text-sm flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Please add a shipping address</p>
                 )}
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              <ChevronRight className="w-6 h-6 text-gray-300 group-hover:text-brand-purple transition-colors mt-6" />
             </div>
 
             {/* Payment Methods */}
-            <div className="bg-white rounded-2xl p-4 md:p-5 shadow-sm">
-              <h2 className="text-sm font-bold text-gray-900 mb-4">Payment Methods</h2>
+            <div className="glass-card rounded-2xl p-5 md:p-6">
+              <h2 className="text-sm font-bold text-gray-400 mb-4 uppercase tracking-wider">Payment Method</h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
                   <input 
@@ -259,10 +261,12 @@ export default function Cart() {
             </div>
 
             {/* Items List */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-white border-b border-gray-100 flex items-center">
-                <span className="bg-yellow-100 text-yellow-800 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Choice</span>
-                <span className="text-sm font-bold text-gray-900 ml-2">Shipped by RouteWorks</span>
+            <div className="glass-card rounded-2xl overflow-hidden mt-4">
+              <div className="px-5 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="bg-brand-purple/10 text-brand-purple text-[10px] uppercase font-bold px-2 py-1 rounded-md tracking-wider">Verified Item</span>
+                  <span className="text-sm font-bold text-gray-900 ml-3">Ready for Delivery</span>
+                </div>
               </div>
               
               <div className="divide-y divide-gray-100">
@@ -332,20 +336,25 @@ export default function Cart() {
 
       {/* Fixed Bottom Bar */}
       {hasItems && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 md:py-4 md:px-8 flex items-center justify-between z-20 md:max-w-3xl md:mx-auto md:rounded-t-2xl">
-          <div className="flex items-center gap-2 pl-2">
-            <span className="text-sm font-bold text-gray-900">Total</span>
-            <span className="text-xl font-extrabold text-gray-900">GH₵ {totalDue.toFixed(2)}</span>
+        <div className="fixed bottom-0 left-0 right-0 glass-panel border-t p-4 pb-safe-4 z-20 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] md:relative md:bg-transparent md:border-none md:p-0 md:shadow-none md:mt-8">
+        <div className="max-w-3xl mx-auto flex items-center justify-between md:glass-card md:p-6 md:rounded-2xl">
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 hidden md:block">Total Summary</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-bold text-gray-900">Total:</span>
+              <span className="text-2xl font-extrabold premium-gradient-text ml-1">GH₵ {totalDue.toFixed(2)}</span>
+            </div>
+            {deliveryFee > 0 && <span className="text-[10px] text-gray-500">Includes delivery</span>}
           </div>
-          <button
+          <button 
             onClick={handleCheckoutClick}
-            disabled={checkingOut}
-            className="bg-[#ff3b30] hover:bg-[#ff1a10] text-white font-bold px-8 py-3 rounded-full shadow-lg transition-colors disabled:opacity-50 min-w-[140px] flex items-center justify-center gap-2 text-base"
+            disabled={checkingOut || !hasItems || !shippingAddress?.contactName}
+            className="premium-button text-white font-bold px-8 py-3.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 pulse-glow-btn min-w-[160px] justify-center"
           >
-            {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Place order'}
+            {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
           </button>
         </div>
-      )}
+      </div>)}
 
       {showEverSend && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-[fadeIn_0.3s_ease-out]">

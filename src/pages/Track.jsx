@@ -193,7 +193,7 @@ export default function Track() {
       </Helmet>
 
       {/* Search Header */}
-      <div className="relative pt-10 pb-10 md:pt-16 md:pb-24 px-4 overflow-hidden">
+      <div className="relative pt-10 pb-12 md:pt-20 md:pb-32 px-4 overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/images/track-hero.jpg"
@@ -201,15 +201,15 @@ export default function Track() {
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
-          <div className="hidden w-full h-full bg-[#0033a0] flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
+          <div className="hidden w-full h-full bg-brand-purple-deep flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
             Missing Image: public/images/track-hero.jpg
           </div>
-          <div className="absolute inset-0 bg-[#001b57]/80 backdrop-blur-[2px]"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-deep/90 to-brand-purple/80 backdrop-blur-[4px]"></div>
         </div>
         <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <span className="text-orange-500 font-bold tracking-widest uppercase text-sm mb-2 md:mb-4 block animate-[fadeIn_0.5s_ease-out]">LIVE UPDATES</span>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 md:mb-6 animate-[fadeIn_0.7s_ease-out]">Track & Trace</h1>
-          <p className="text-lg md:text-2xl text-blue-100 max-w-3xl mx-auto font-light animate-[fadeIn_0.9s_ease-out]">
+          <span className="text-brand-orange font-bold tracking-widest uppercase text-sm mb-2 md:mb-4 block animate-[fadeIn_0.5s_ease-out]">PREMIUM TRACKING</span>
+          <h1 className="text-4xl md:text-6xl font-display font-extrabold text-white mb-4 md:mb-6 animate-[fadeIn_0.7s_ease-out] drop-shadow-md">Track & Trace</h1>
+          <p className="text-lg md:text-2xl text-purple-100 max-w-3xl mx-auto font-light animate-[fadeIn_0.9s_ease-out]">
             Monitor the status and location of your shipments in real-time.
           </p>
         </div>
@@ -224,12 +224,12 @@ export default function Track() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Enter Tracking Number (e.g. RW-DEMO01)"
-              className="flex-1 px-6 py-4 md:py-5 rounded-xl text-lg text-gray-800 bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:border-[#0033a0] transition-all"
+              className="flex-1 px-6 py-4 md:py-5 rounded-xl text-lg text-gray-800 bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:border-brand-purple transition-all shadow-inner"
             />
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-[#0033a0] text-white font-bold px-8 py-4 md:py-5 rounded-xl hover:bg-blue-800 transition-colors flex items-center justify-center disabled:opacity-70 min-w-[160px]"
+              className="premium-button text-white font-bold px-8 py-4 md:py-5 rounded-xl flex items-center justify-center disabled:opacity-70 min-w-[160px]"
             >
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : <Search className="w-6 h-6 mr-2" />}
               {isLoading ? 'Searching...' : 'Track'}
@@ -265,17 +265,17 @@ export default function Track() {
 
         {/* NOT FOUND state */}
         {step === STEP.NOT_FOUND && (
-          <div className="bg-white rounded-3xl shadow-xl p-10 text-center border border-gray-100 mt-8 animate-[fadeIn_0.5s_ease-out]">
+          <div className="glass-card rounded-3xl p-10 text-center border-t-4 border-t-brand-orange mt-8 animate-[fadeIn_0.5s_ease-out]">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-red-400" />
+              <Search className="w-8 h-8 text-brand-orange" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Shipment not found</h3>
-            <p className="text-gray-500 mb-4">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2 font-display">Shipment not found</h3>
+            <p className="text-gray-500 mb-6">
               {errorMsg || `We couldn't find any shipment matching '${searchInput}'. Please double-check it with the sender and try again.`}
             </p>
             <button
               onClick={() => { setStep(STEP.SEARCH); setSearchInput(''); setErrorMsg(null); }}
-              className="bg-[#0033a0] text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-800 transition-colors"
+              className="premium-button text-white font-bold px-8 py-3.5 rounded-xl"
             >
               Try Again
             </button>
