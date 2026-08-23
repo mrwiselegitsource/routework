@@ -311,7 +311,7 @@ export default function Cart() {
 
         {/* Fixed Bottom Bar */}
         {hasItems && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex items-center justify-between z-20">
+          <div className="fixed bottom-24 md:bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex items-center justify-between z-20">
             <div className="flex items-center gap-1 pl-2">
               <span className="text-lg font-bold text-gray-900">GH₵ {totalDue.toFixed(2)}</span>
             </div>

@@ -24,7 +24,8 @@ export default function CustomerOrders() {
         for (const o of data) {
           const media = await db.getOrderMedia(o.order_id);
           if (media && media.length > 0) {
-            map[o.order_id] = media.find(m => m.media_type === 'image')?.storage_path || media[0].storage_path;
+            const img = media.find(m => m.media_type === 'image') || media[0];
+            map[o.order_id] = img.public_url || img.storage_path;
           }
         }
         setMediaMap(map);
@@ -121,11 +122,13 @@ export default function CustomerOrders() {
             <div key={order.order_id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row gap-6 items-start md:items-center hover:shadow-md transition-shadow">
               
               {mediaMap[order.order_id] ? (
-                <img src={mediaMap[order.order_id].startsWith('http') ? mediaMap[order.order_id] : mediaMap[order.order_id]} alt="Preview" className="w-full md:w-32 h-32 object-cover rounded-xl bg-gray-50 shrink-0" />
+                <Link to={`/track?id=${order.order_id}`} className="shrink-0 block group">
+                  <img src={mediaMap[order.order_id].startsWith('http') ? mediaMap[order.order_id] : mediaMap[order.order_id]} alt="Preview" className="w-full md:w-32 h-32 object-cover rounded-xl bg-gray-50 group-hover:opacity-80 transition-opacity" />
+                </Link>
               ) : (
-                <div className="w-full md:w-32 h-32 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 text-gray-300 shrink-0">
+                <Link to={`/track?id=${order.order_id}`} className="w-full md:w-32 h-32 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 text-gray-300 shrink-0 hover:bg-gray-100 transition-colors">
                   <Package className="w-8 h-8" />
-                </div>
+                </Link>
               )}
 
               <div className="flex-1 min-w-0 w-full">
