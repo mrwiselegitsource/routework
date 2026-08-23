@@ -185,6 +185,18 @@ export default function Track() {
 
   const isClaimed = !!order?.recipient_address;
 
+  let formattedEta = 'To be updated';
+  let formattedEtaTime = null;
+  if (order?.estimated_delivery && order.estimated_delivery !== 'To be updated') {
+    const d = new Date(order.estimated_delivery);
+    if (!isNaN(d.getTime())) {
+      formattedEta = d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' });
+      formattedEtaTime = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } else {
+      formattedEta = order.estimated_delivery;
+    }
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen pb-24">
       <Helmet>
@@ -293,7 +305,8 @@ export default function Track() {
               trackingId={order.order_id}
               status={(order.current_status || 'pending').replace(/_/g, ' ')}
               location={isClaimed ? (order.current_location || 'Pending update') : (order.sender_country ? `${order.sender_country} (Origin Port - Pending Delivery Details)` : 'Origin Port (Pending Delivery Details)')}
-              eta={order.estimated_delivery || 'To be updated'}
+              eta={formattedEta}
+              etaTime={formattedEtaTime}
             />
 
             {!isClaimed && (
@@ -322,7 +335,7 @@ export default function Track() {
                   destination="Ghana"
                   location={isClaimed ? (order.current_location || 'Pending update') : 'Origin Port (Pending Delivery Details)'}
                   method="Standard Logistics"
-                  eta={order.estimated_delivery || 'To be updated'}
+                  eta={formattedEta}
                   paymentStatus={order.payment_status}
                 />
 

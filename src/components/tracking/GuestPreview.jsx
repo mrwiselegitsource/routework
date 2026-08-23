@@ -50,7 +50,15 @@ export default function GuestPreview({ preview, media, onLogin, onSignup }) {
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-green-500" />
                 <span className="text-gray-500">ETA:</span>
-                <span className="font-bold text-gray-800">{preview.estimated_delivery}</span>
+                <span className="font-bold text-gray-800">
+                  {(() => {
+                    const d = new Date(preview.estimated_delivery);
+                    if (!isNaN(d.getTime())) {
+                      return d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    }
+                    return preview.estimated_delivery;
+                  })()}
+                </span>
               </div>
             )}
           </div>

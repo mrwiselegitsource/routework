@@ -1,7 +1,7 @@
 import React from 'react';
 import { Package, Truck, ShieldCheck, MapPin, CheckCircle, AlertTriangle } from 'lucide-react';
 
-export default function StatusHeader({ status, location, eta, trackingId }) {
+export default function StatusHeader({ status, location, eta, etaTime, trackingId }) {
   // Determine color and icon based on status string
   let StatusIcon = Package;
   let bgColor = 'bg-amber-100';
@@ -40,14 +40,18 @@ export default function StatusHeader({ status, location, eta, trackingId }) {
         <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight mb-2 ${textColor}`}>
           {status.toUpperCase()}
         </h2>
-        <div className="flex flex-col gap-1 text-gray-600 text-sm md:text-base">
+        <div className="flex flex-col gap-1 text-gray-600 text-sm md:text-base mt-4">
           <p className="flex items-center justify-center md:justify-start gap-1">
             <MapPin size={16} className="text-gray-400" />
             <span className="font-semibold">Current Location:</span> {location}
           </p>
-          <p>
-            <span className="font-semibold">Estimated Delivery:</span> {eta}
-          </p>
+          <div className="mt-2 bg-gray-50 rounded-lg p-3 inline-block border border-gray-100 text-left w-full md:w-auto">
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Estimated Delivery</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-bold text-gray-900">{eta}</span>
+              {etaTime && <span className="text-sm font-medium text-gray-500">{etaTime}</span>}
+            </div>
+          </div>
         </div>
       </div>
 
