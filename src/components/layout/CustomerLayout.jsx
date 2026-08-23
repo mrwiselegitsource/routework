@@ -7,6 +7,7 @@ import { useCustomerMessages } from '../../context/CustomerMessagesContext';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
+import MobileBottomNav from '../MobileBottomNav';
 
 const CUSTOMER_LINKS = [
   { to: '/track', label: 'Track', icon: Search },
@@ -96,31 +97,7 @@ export default function CustomerLayout() {
       </main>
 
       {/* Floating Bottom Nav for Mobile */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[90%] sm:max-w-md">
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 flex items-center justify-around p-3">
-          {CUSTOMER_LINKS.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-1 p-2 rounded-2xl transition-colors relative ${
-                  isActive ? 'text-[#0033a0]' : 'text-gray-500 hover:text-gray-900'
-                }`
-              }
-            >
-              <link.icon className="w-5 h-5" />
-              <span className="text-[10px] font-semibold">{link.label}</span>
-              {link.to === '/cart' && cart?.items?.length > 0 && (
-                <span className="absolute top-0 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              )}
-              {link.to === '/account/messages' && unreadCount > 0 && (
-                <span className="absolute top-0 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-              )}
-            </NavLink>
-          ))}
-        </div>
-      </div>
+      <MobileBottomNav />
 
       <Footer />
     </div>

@@ -7,6 +7,7 @@ import { CartProvider } from './context/CartContext';
 import TrackingProvider from './components/TrackingProvider';
 import Topbar from './components/Topbar';
 import Navbar from './components/Navbar';
+import MobileBottomNav from './components/MobileBottomNav';
 import Home from './pages/Home';
 import Services from './pages/Services';
 import BusinessSolutionsPage from './pages/BusinessSolutionsPage';
@@ -68,16 +69,8 @@ function PublicAppLayout() {
       </main>
       <Footer />
       
-      {/* Sticky Mobile CTA */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 p-3 flex justify-center">
-        <Link 
-          to="/track" 
-          className="bg-orange-500 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center w-full shadow-lg hover:bg-orange-600 transition-colors"
-        >
-          <Package className="mr-2" size={20} />
-          Track Your Parcel
-        </Link>
-      </div>
+      {/* Floating Bottom Nav for Mobile */}
+      <MobileBottomNav />
     </div>
   );
 }
