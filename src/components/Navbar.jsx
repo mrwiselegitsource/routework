@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Search, X, User, LogOut, Package, ShoppingCart, ChevronDown, UserPlus, LogIn } from 'lucide-react';
+import { Menu, Search, X, User, LogOut, Package, ShoppingCart, ChevronDown, UserPlus, LogIn, Mail } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useCustomerMessages } from '../context/CustomerMessagesContext';
 import { auth } from '../lib/db';
 
 export default function Navbar() {
@@ -11,6 +12,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, profile } = useCustomerAuth();
+  const { unreadCount } = useCustomerMessages();
 
   const isLoggedIn = !!session?.user;
 
@@ -84,13 +86,16 @@ export default function Navbar() {
             <button
               id="profile-menu-btn"
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className={`flex items-center gap-2 rounded-full border-2 transition-all duration-200 ${
+              className={`relative flex items-center gap-2 rounded-full border-2 transition-all duration-200 ${
                 isLoggedIn
                   ? 'border-[#0033a0]/20 hover:border-[#0033a0]/50 pr-2 pl-1 py-1'
                   : 'border-gray-200 hover:border-orange-400 p-2'
               }`}
               aria-label="User menu"
             >
+              {isLoggedIn && unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white z-10"></span>
+              )}
               {isLoggedIn && initials ? (
                 <div className="w-7 h-7 rounded-full bg-[#0033a0] text-white text-xs font-bold flex items-center justify-center">
                   {initials}
@@ -124,6 +129,17 @@ export default function Navbar() {
                       <Link to="/account" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors">
                         <User size={16} className="text-[#0033a0]" />
                         My Account
+                      </Link>
+                      <Link to="/account/messages" className="flex items-center justify-between px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors">
+                        <div className="flex items-center gap-3">
+                          <Mail size={16} className="text-[#0033a0]" />
+                          Inbox
+                        </div>
+                        {unreadCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {unreadCount}
+                          </span>
+                        )}
                       </Link>
                       <Link to="/account/orders" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors">
                         <Package size={16} className="text-[#0033a0]" />
