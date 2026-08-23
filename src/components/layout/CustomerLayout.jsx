@@ -42,7 +42,7 @@ export default function CustomerLayout() {
                 <p className="text-sm text-gray-500">{profile?.email}</p>
               </div>
 
-              <nav className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">
+              <nav className="hidden md:flex md:flex-col gap-2 pb-2 md:pb-0">
                 {CUSTOMER_LINKS.map((link) => (
                   <NavLink
                     key={link.to}
@@ -80,12 +80,36 @@ export default function CustomerLayout() {
           </aside>
 
           {/* Main Content Area */}
-          <div className="flex-1">
+          <div className="flex-1 pb-24 md:pb-0">
             <Outlet />
           </div>
 
         </div>
       </main>
+
+      {/* Floating Bottom Nav for Mobile */}
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[90%] sm:max-w-md">
+        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 flex items-center justify-around p-3">
+          {CUSTOMER_LINKS.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.end}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-1 p-2 rounded-2xl transition-colors relative ${
+                  isActive ? 'text-[#0033a0]' : 'text-gray-500 hover:text-gray-900'
+                }`
+              }
+            >
+              <link.icon className="w-5 h-5" />
+              <span className="text-[10px] font-semibold">{link.label}</span>
+              {link.to === '/cart' && cart?.items?.length > 0 && (
+                <span className="absolute top-0 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </div>
 
       <Footer />
     </div>
