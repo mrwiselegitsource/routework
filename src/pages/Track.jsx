@@ -187,13 +187,21 @@ export default function Track() {
 
   let formattedEta = 'To be updated';
   let formattedEtaTime = null;
-  if (order?.estimated_delivery && order.estimated_delivery !== 'To be updated') {
-    const d = new Date(order.estimated_delivery);
+  
+  let activeEta = order?.estimated_delivery;
+  if (order?.payment_status === 'unpaid' && order?.delivery_duration_hours) {
+    const d = new Date();
+    d.setHours(d.getHours() + order.delivery_duration_hours);
+    activeEta = d;
+  }
+
+  if (activeEta && activeEta !== 'To be updated') {
+    const d = activeEta instanceof Date ? activeEta : new Date(activeEta);
     if (!isNaN(d.getTime())) {
       formattedEta = d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' });
       formattedEtaTime = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    } else {
-      formattedEta = order.estimated_delivery;
+    } else if (typeof activeEta === 'string') {
+      formattedEta = activeEta;
     }
   }
 
