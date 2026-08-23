@@ -24,6 +24,12 @@ export default function AdminNews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (!title.trim() || !excerpt.trim() || !content.trim()) {
+      alert("Please fill out the Title, Excerpt, and Full Content fields.")
+      return
+    }
+
     try {
       if (editItem) {
         await db.updateNews(editItem.id, { title, excerpt, content, image_url: imageUrl || null })
@@ -74,22 +80,22 @@ export default function AdminNews() {
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-[var(--color-line)] max-w-2xl">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-            <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 border rounded-md" />
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 border rounded-md focus:ring-2 focus:ring-orange-500 outline-none" />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt (Short Summary)</label>
-            <input required type="text" value={excerpt} onChange={e => setExcerpt(e.target.value)} className="w-full p-2 border rounded-md" />
+            <input type="text" value={excerpt} onChange={e => setExcerpt(e.target.value)} className="w-full p-2 border rounded-md focus:ring-2 focus:ring-orange-500 outline-none" />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Main Cover Image URL (Optional)</label>
-            <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="w-full p-2 border rounded-md" placeholder="https://..." />
+            <input type="text" value={imageUrl} onChange={e => setImageUrl(e.target.value)} className="w-full p-2 border rounded-md focus:ring-2 focus:ring-orange-500 outline-none" placeholder="https://..." />
           </div>
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Content (Supports Markdown)</label>
             <p className="text-xs text-gray-500 mb-2">You can add images in between paragraphs using: <code>![Description](https://image-url.com/img.png)</code></p>
-            <textarea required rows="10" value={content} onChange={e => setContent(e.target.value)} className="w-full p-2 border rounded-md font-mono text-sm"></textarea>
+            <textarea rows="10" value={content} onChange={e => setContent(e.target.value)} className="w-full p-2 border rounded-md font-mono text-sm focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
           </div>
-          <button type="submit" className="bg-[var(--color-brand-orange)] text-white px-6 py-2 rounded-md font-semibold">
+          <button type="submit" className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 transition-colors cursor-pointer text-white px-6 py-2 rounded-md font-semibold">
             {editItem ? 'Save Changes' : 'Publish Post'}
           </button>
         </form>
