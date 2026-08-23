@@ -19,6 +19,8 @@ export default function Cart() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [showEverSend, setShowEverSend] = useState(false);
   
   // Master Shipping Address State
   const [isEditingAddress, setIsEditingAddress] = useState(false);
