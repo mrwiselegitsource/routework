@@ -51,13 +51,13 @@ export default function Navbar() {
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
             <img 
-              src="/images/logo.png" 
+              src="/images/logo-horizontal.png" 
               alt="Logo" 
               className="h-[40px] w-auto object-contain"
               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
             />
             <div className="hidden w-[150px] h-[40px] bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded border-dashed border-2 border-gray-300">
-              Missing: public/images/logo.png
+              Missing: public/images/logo-horizontal.png
             </div>
           </Link>
         </div>

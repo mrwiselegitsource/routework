@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="flex flex-col">
             <Link to="/">
               <img 
-                src="/images/logo.png" 
+                src="/images/logo-horizontal.png" 
                 alt="Ghana Post Logo" 
                 className="h-[50px] w-auto object-contain mb-8 bg-white p-2 rounded" 
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
