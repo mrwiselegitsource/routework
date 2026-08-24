@@ -21,6 +21,7 @@ export default function Cart() {
   const [success, setSuccess] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [showEverSend, setShowEverSend] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState([]);
   
   // Master Shipping Address State
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -63,15 +64,27 @@ export default function Cart() {
     loadConfig();
   }, []);
 
+  // Initialize selected items when cart items change
+  useEffect(() => {
+    if (cart?.items) {
+      // Only set if we haven't selected anything yet, or if cart items have changed significantly
+      setSelectedItemIds(cart.items.map(item => item.id));
+    }
+  }, [cart?.items?.length]);
+
   const items = cart?.items || [];
   const hasItems = items.length > 0;
+  
+  // Filter selected items
+  const selectedItems = items.filter(item => selectedItemIds.includes(item.id));
+  const hasSelectedItems = selectedItems.length > 0;
 
   // Calculate totals
-  const outstandingBalance = items.reduce((sum, item) => {
+  const outstandingBalance = selectedItems.reduce((sum, item) => {
     return sum + (item.order?.payment_status === 'unpaid' ? (parseFloat(item.order?.amount_due) || 0) : 0);
   }, 0);
 
-  const deliveryFee = items.reduce((sum, item) => {
+  const deliveryFee = selectedItems.reduce((sum, item) => {
     const regionName = shippingAddress.region;
     if (!regionName) return sum;
 
@@ -114,7 +127,7 @@ export default function Cart() {
     const formattedAddress = `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.region}, Ghana`;
 
     try {
-      for (const item of items) {
+      for (const item of selectedItems) {
         await db.updateOrderDetails(item.order_id, {
           recipient_name: shippingAddress.contactName,
           recipient_phone: shippingAddress.phone,
@@ -137,9 +150,10 @@ export default function Cart() {
             ? `Payment proof submitted. Delivery arranging pending verification for: ${formattedAddress}.`
             : `Payment completed. Delivery arranged for: ${formattedAddress}.`
         }, null);
+        
+        await removeFromCart(item.order_id);
       }
 
-      await clearCart();
       setShowEverSend(false);
       setSuccess(true);
       setTimeout(() => navigate('/account/orders'), 3000);
@@ -148,6 +162,20 @@ export default function Cart() {
       setError('Checkout failed. Please try again.');
     } finally {
       setCheckingOut(false);
+    }
+  };
+
+  const toggleItemSelection = (id) => {
+    setSelectedItemIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItemIds.length === items.length) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(items.map(i => i.id));
     }
   };
 
@@ -223,45 +251,102 @@ export default function Cart() {
               </div>
 
               {/* Payment Methods */}
-              <div className="bg-white px-4 py-3">
-                <h2 className="text-sm font-bold text-gray-900 mb-2">Payment Methods</h2>
-                <div className="flex flex-col">
-                  <label className="flex items-center gap-3 py-3 border-b border-gray-100 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="payment" 
-                      value="card"
-                      checked={paymentMethod === 'card'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-[#ff3b30] accent-[#ff3b30]" 
-                    />
-                    <CreditCard className="w-5 h-5 text-gray-600" />
-                    <span className="text-sm font-bold text-gray-800">Add a new card</span>
-                  </label>
-                  <label className="flex items-center gap-3 py-3 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="payment"
-                      value="eversend"
-                      checked={paymentMethod === 'eversend'}
-                      onChange={(e) => setPaymentMethod(e.target.value)} 
-                      className="w-4 h-4 text-[#ff3b30] accent-[#ff3b30]" 
-                    />
-                    <div className="w-5 h-5 bg-[#0033a0] rounded flex items-center justify-center text-[10px] font-bold text-white">E</div>
-                    <span className="text-sm font-bold text-gray-800">EverSend</span>
-                  </label>
+              <div className="bg-white px-4 py-6">
+                <h2 className="text-base font-bold text-gray-900 mb-4">Select Payment Method</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  
+                  {/* Credit Card */}
+                  <div 
+                    onClick={() => setPaymentMethod('card')}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
+                      paymentMethod === 'card' 
+                        ? 'border-[#ff3b30] bg-red-50' 
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    {paymentMethod === 'card' && (
+                      <div className="absolute top-2 right-2 bg-[#ff3b30] rounded-full p-0.5">
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <CreditCard className={`w-8 h-8 ${paymentMethod === 'card' ? 'text-[#ff3b30]' : 'text-gray-400'}`} />
+                    <span className={`font-bold ${paymentMethod === 'card' ? 'text-[#ff3b30]' : 'text-gray-700'}`}>Credit / Debit</span>
+                  </div>
+
+                  {/* EverSend */}
+                  <div 
+                    onClick={() => setPaymentMethod('eversend')}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
+                      paymentMethod === 'eversend' 
+                        ? 'border-[#0033a0] bg-blue-50' 
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    {paymentMethod === 'eversend' && (
+                      <div className="absolute top-2 right-2 bg-[#0033a0] rounded-full p-0.5">
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold text-white ${paymentMethod === 'eversend' ? 'bg-[#0033a0]' : 'bg-gray-400'}`}>E</div>
+                    <span className={`font-bold ${paymentMethod === 'eversend' ? 'text-[#0033a0]' : 'text-gray-700'}`}>EverSend</span>
+                  </div>
+
+                  {/* PayPal */}
+                  <div 
+                    onClick={() => setPaymentMethod('paypal')}
+                    className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
+                      paymentMethod === 'paypal' 
+                        ? 'border-[#0079C1] bg-blue-50' 
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                  >
+                    {paymentMethod === 'paypal' && (
+                      <div className="absolute top-2 right-2 bg-[#0079C1] rounded-full p-0.5">
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <span className={`font-extrabold text-2xl italic ${paymentMethod === 'paypal' ? 'text-[#0079C1]' : 'text-gray-400'}`}>
+                      Pay<span className={paymentMethod === 'paypal' ? 'text-[#00457C]' : ''}>Pal</span>
+                    </span>
+                    <span className={`font-bold ${paymentMethod === 'paypal' ? 'text-[#0079C1]' : 'text-gray-700'}`}>PayPal</span>
+                  </div>
+
                 </div>
               </div>
 
               {/* Items List */}
-              <div className="bg-white pb-4">
-                <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-900">RouteWorks Store</span>
+              <div className="bg-white pb-4 mt-2">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={toggleSelectAll}
+                      className="flex items-center justify-center w-5 h-5 rounded border border-gray-300 focus:outline-none"
+                    >
+                      {selectedItemIds.length === items.length && (
+                        <div className="w-full h-full bg-[#ff3b30] border-[#ff3b30] flex items-center justify-center rounded">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      )}
+                    </button>
+                    <span className="text-sm font-bold text-gray-900">Select All Items</span>
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{items.length} items</span>
                 </div>
                 
                 <div className="divide-y divide-gray-100">
                   {items.map((item) => (
-                    <div key={item.id} className="p-4 flex gap-3">
+                    <div key={item.id} className="p-4 flex gap-4 items-center">
+                      <button 
+                        onClick={() => toggleItemSelection(item.id)}
+                        className="flex items-center justify-center w-5 h-5 flex-shrink-0 rounded border border-gray-300 focus:outline-none"
+                      >
+                        {selectedItemIds.includes(item.id) && (
+                          <div className="w-full h-full bg-[#ff3b30] border-[#ff3b30] flex items-center justify-center rounded">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        )}
+                      </button>
+                      
                       {item.media ? (
                         <img src={item.media.storage_path || item.media.public_url} alt="Item" className="w-20 h-20 object-cover bg-gray-50 rounded" onError={(e) => e.target.style.display = 'none'} />
                       ) : (
@@ -317,10 +402,10 @@ export default function Cart() {
             </div>
             <button 
               onClick={handleCheckoutClick}
-              disabled={checkingOut || !hasItems || !shippingAddress?.contactName}
+              disabled={checkingOut || !hasSelectedItems || !shippingAddress?.contactName}
               className="bg-[#ff3b30] hover:bg-[#e0352b] text-white font-bold px-8 py-2.5 rounded-full disabled:opacity-50 min-w-[120px]"
             >
-              {checkingOut ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Place order'}
+              {checkingOut ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : `Checkout (${selectedItems.length})`}
             </button>
           </div>
         )}
