@@ -269,7 +269,16 @@ export default function Cart() {
                         <CheckCircle2 className="w-4 h-4 text-white" />
                       </div>
                     )}
-                    <CreditCard className={`w-8 h-8 ${paymentMethod === 'card' ? 'text-[#ff3b30]' : 'text-gray-400'}`} />
+                    <div className="flex gap-2 items-center h-8 mb-1">
+                      <svg width="40" height="12" viewBox="0 0 40 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.4 0L10.3 12h3.3l1-2.8h4.8l.5 2.8h3.1L18.6 0h-3.2zm-.1 6.8l1.5-4.2 1.1 4.2h-2.6zM32.8 0c-2.3 0-4 1.1-4 2.8 0 2.5 3.5 2.6 3.5 3.8 0 .5-.6 1-1.6 1-1.3 0-2.3-.3-3.2-.8l-.5 2.4c.9.4 2.1.7 3.4.7 2.4 0 4.1-1.1 4.1-2.9 0-2.6-3.5-2.7-3.5-3.8 0-.5.6-1 1.5-1 1.1 0 2 .3 2.7.7l.4-2.3c-.7-.3-1.6-.6-2.8-.6zM36.1 0h3.2l2.6 12h-3.4l-.4-2H36.3L36.1 0zM7.5 0L4.8 8.1 4 0H0l3.8 12h3.4l5.3-12H7.5z" fill="#1434CB"/>
+                      </svg>
+                      <svg width="24" height="16" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="8" cy="8" r="8" fill="#EB001B"/>
+                        <circle cx="16" cy="8" r="8" fill="#F79E1B"/>
+                        <path d="M12 14c2-1.4 3.2-3.6 3.2-6 0-2.4-1.2-4.6-3.2-6-2 1.4-3.2 3.6-3.2 6 0 2.4 1.2 4.6 3.2 6z" fill="#FF5F00"/>
+                      </svg>
+                    </div>
                     <span className={`font-bold ${paymentMethod === 'card' ? 'text-[#ff3b30]' : 'text-gray-700'}`}>Credit / Debit</span>
                   </div>
 
@@ -287,7 +296,14 @@ export default function Cart() {
                         <CheckCircle2 className="w-4 h-4 text-white" />
                       </div>
                     )}
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold text-white ${paymentMethod === 'eversend' ? 'bg-[#0033a0]' : 'bg-gray-400'}`}>E</div>
+                    <div className="h-8 flex items-center mb-1">
+                      <svg width="100" height="28" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M47.6 14.8H26.8v8.4h18v6.4h-18v10h20.8v6.4H19.2V8.4h28.4v6.4zM70.8 46L58.4 17.6h7.6L74 38.4l8-20.8h7.6L77.6 46h-6.8zM116 38.4V46h-24.8V8.4H114v6.4H98.8v8.4h14v6.4h-14v8.8H116zM137.6 19.6c2.8 0 4.8.8 6 2.4s1.6 4.4 1.6 8v16h-7.6v-15.6c0-1.6-.4-2.8-1.2-3.2s-2-.8-4-.8v20h-7.6V19.6h12.8z" fill="#0033a0"/>
+                        <circle cx="178" cy="28" r="14" fill="#0033a0"/>
+                        <path d="M174 20h8v16h-8v-16z" fill="#fff"/>
+                        <path d="M170 24h16v8h-16v-8z" fill="#fff"/>
+                      </svg>
+                    </div>
                     <span className={`font-bold ${paymentMethod === 'eversend' ? 'text-[#0033a0]' : 'text-gray-700'}`}>EverSend</span>
                   </div>
 
@@ -305,9 +321,9 @@ export default function Cart() {
                         <CheckCircle2 className="w-4 h-4 text-white" />
                       </div>
                     )}
-                    <span className={`font-extrabold text-2xl italic ${paymentMethod === 'paypal' ? 'text-[#0079C1]' : 'text-gray-400'}`}>
-                      Pay<span className={paymentMethod === 'paypal' ? 'text-[#00457C]' : ''}>Pal</span>
-                    </span>
+                    <div className="h-8 flex items-center mb-1">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-6 object-contain" />
+                    </div>
                     <span className={`font-bold ${paymentMethod === 'paypal' ? 'text-[#0079C1]' : 'text-gray-700'}`}>PayPal</span>
                   </div>
 
