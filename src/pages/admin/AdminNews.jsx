@@ -12,6 +12,8 @@ export default function AdminNews() {
   const [excerpt, setExcerpt] = useState('')
   const [content, setContent] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
   const { profile } = useAuth()
 
   useEffect(() => {
@@ -24,9 +26,11 @@ export default function AdminNews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError(null)
+    setSuccess(null)
     
-    if (!title.trim() || !excerpt.trim() || !content.trim()) {
-      alert("Please fill out the Title, Excerpt, and Full Content fields.")
+    if (!title?.trim() || !excerpt?.trim() || !content?.trim()) {
+      setError("Please fill out the Title, Excerpt, and Full Content fields.")
       return
     }
 
@@ -38,10 +42,13 @@ export default function AdminNews() {
       }
       resetForm()
       fetchNews()
-      alert("Published successfully!")
+      setSuccess("Published successfully!")
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000)
     } catch (err) {
       console.error("Error publishing news:", err)
-      alert("Failed to publish: " + err.message)
+      setError("Failed to publish: " + err.message)
     }
   }
 
@@ -78,6 +85,16 @@ export default function AdminNews() {
           <button onClick={resetForm} className="text-gray-500 hover:text-gray-800">Cancel</button>
         </div>
         <div className="bg-white p-6 rounded-xl border border-[var(--color-line)] max-w-2xl">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm font-medium">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-md text-sm font-medium">
+              {success}
+            </div>
+          )}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 border rounded-md focus:ring-2 focus:ring-orange-500 outline-none" />
