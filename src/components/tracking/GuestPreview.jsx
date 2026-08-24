@@ -12,7 +12,7 @@ export default function GuestPreview({ preview, media, onLogin, onSignup }) {
         {media && (
           <div className="relative h-56 md:h-72 overflow-hidden bg-gray-100">
             <img
-              src={media.storage_path || media.public_url}
+              src={media.public_url || media.storage_path}
               alt={preview.item_name}
               className="w-full h-full object-cover"
               onError={(e) => { e.target.style.display = 'none'; }}

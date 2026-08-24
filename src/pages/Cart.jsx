@@ -377,7 +377,7 @@ export default function Cart() {
 
                       <div className="w-16 h-16 bg-gray-50 rounded border border-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {item.media ? (
-                          <img src={item.media.storage_path || item.media.public_url} alt="Preview" className="w-full h-full object-cover" />
+                          <img src={item.media.public_url || item.media.storage_path} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
                           <div className="text-gray-300 flex items-center justify-center">
                             <span className="text-[10px] font-bold uppercase tracking-wider">No Img</span>
