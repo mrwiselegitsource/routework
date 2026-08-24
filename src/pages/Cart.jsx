@@ -372,19 +372,18 @@ export default function Cart() {
                           ) : (
                             <span className="text-xs font-bold text-green-600">Shipment Paid</span>
                           )}
-                          <div className="flex items-center border border-gray-200 rounded">
-                            <span className="px-2 py-0.5 text-sm font-bold">1</span>
-                          </div>
                         </div>
                       </div>
 
-                      {item.media ? (
-                        <img src={item.media.storage_path || item.media.public_url} alt="Item" className="w-20 h-20 object-cover bg-gray-50 rounded" onError={(e) => e.target.style.display = 'none'} />
-                      ) : (
-                        <div className="w-20 h-20 bg-gray-50 rounded flex items-center justify-center border border-gray-100 text-gray-300">
-                          <MapPin className="w-6 h-6" />
-                        </div>
-                      )}
+                      <div className="w-16 h-16 bg-gray-50 rounded border border-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {item.media ? (
+                          <img src={item.media.storage_path || item.media.public_url} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="text-gray-300 flex items-center justify-center">
+                            <span className="text-[10px] font-bold uppercase tracking-wider">No Img</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
