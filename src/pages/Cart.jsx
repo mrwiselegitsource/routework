@@ -68,7 +68,7 @@ export default function Cart() {
   useEffect(() => {
     if (cart?.items) {
       // Only set if we haven't selected anything yet, or if cart items have changed significantly
-      setSelectedItemIds(cart.items.map(item => item.id));
+      setSelectedItemIds(cart.items.map(item => item.order_id));
     }
   }, [cart?.items?.length]);
 
@@ -76,7 +76,7 @@ export default function Cart() {
   const hasItems = items.length > 0;
   
   // Filter selected items
-  const selectedItems = items.filter(item => selectedItemIds.includes(item.id));
+  const selectedItems = items.filter(item => selectedItemIds.includes(item.order_id));
   const hasSelectedItems = selectedItems.length > 0;
 
   // Calculate totals
@@ -165,9 +165,9 @@ export default function Cart() {
     }
   };
 
-  const toggleItemSelection = (id) => {
+  const toggleItemSelection = (orderId) => {
     setSelectedItemIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+      prev.includes(orderId) ? prev.filter(i => i !== orderId) : [...prev, orderId]
     );
   };
 
@@ -175,7 +175,7 @@ export default function Cart() {
     if (selectedItemIds.length === items.length) {
       setSelectedItemIds([]);
     } else {
-      setSelectedItemIds(items.map(i => i.id));
+      setSelectedItemIds(items.map(i => i.order_id));
     }
   };
 
@@ -351,12 +351,12 @@ export default function Cart() {
                 
                 <div className="divide-y divide-gray-100">
                   {items.map((item) => (
-                    <div key={item.id} className="p-4 flex gap-4 items-center">
+                    <div key={item.order_id} className="p-4 flex gap-4 items-center">
                       <button 
-                        onClick={() => toggleItemSelection(item.id)}
+                        onClick={() => toggleItemSelection(item.order_id)}
                         className="flex items-center justify-center w-5 h-5 flex-shrink-0 rounded border border-gray-300 focus:outline-none"
                       >
-                        {selectedItemIds.includes(item.id) && (
+                        {selectedItemIds.includes(item.order_id) && (
                           <div className="w-full h-full bg-[#ff3b30] border-[#ff3b30] flex items-center justify-center rounded">
                             <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                           </div>
