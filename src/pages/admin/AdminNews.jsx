@@ -77,7 +77,7 @@ export default function AdminNews() {
           <h1 className="font-display text-2xl font-bold text-[var(--color-ink)]">{editItem ? 'Edit News' : 'Add News'}</h1>
           <button onClick={resetForm} className="text-gray-500 hover:text-gray-800">Cancel</button>
         </div>
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-[var(--color-line)] max-w-2xl">
+        <div className="bg-white p-6 rounded-xl border border-[var(--color-line)] max-w-2xl">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full p-2 border rounded-md focus:ring-2 focus:ring-orange-500 outline-none" />
@@ -95,10 +95,10 @@ export default function AdminNews() {
             <p className="text-xs text-gray-500 mb-2">You can add images in between paragraphs using: <code>![Description](https://image-url.com/img.png)</code></p>
             <textarea rows="10" value={content} onChange={e => setContent(e.target.value)} className="w-full p-2 border rounded-md font-mono text-sm focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
           </div>
-          <button type="submit" className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 transition-colors cursor-pointer text-white px-6 py-2 rounded-md font-semibold">
+          <button type="button" onClick={handleSubmit} className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 transition-colors cursor-pointer text-white px-6 py-2 rounded-md font-semibold">
             {editItem ? 'Save Changes' : 'Publish Post'}
           </button>
-        </form>
+        </div>
       </div>
     )
   }
