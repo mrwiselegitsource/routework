@@ -258,6 +258,15 @@ export default function Track() {
 
       {/* Main Content Area */}
       <div className="container mx-auto max-w-4xl px-4 relative z-20 py-6 md:py-10">
+        {order && (
+          <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-xl flex gap-3 items-start mb-6">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-bold mb-1">Important Anti-Fraud Warning</p>
+              <p>Please ensure that you are only tracking and claiming orders that rightfully belong to you. Attempting to claim or pay for someone else's shipment is considered theft. All claims are securely logged and fraudulent activities will be reported to the authorities.</p>
+            </div>
+          </div>
+        )}
 
         {/* SEARCH state — show global network */}
         {step === STEP.SEARCH && (

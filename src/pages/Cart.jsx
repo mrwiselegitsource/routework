@@ -219,6 +219,13 @@ export default function Cart() {
             </div>
           ) : (
             <>
+              <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-xl flex gap-3 items-start md:mx-0 mx-4">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-bold mb-1">Important Anti-Fraud Warning</p>
+                  <p>Please ensure that you are only paying for shipments that rightfully belong to you. Attempting to claim or pay for someone else's shipment is considered theft. All claims are securely logged and fraudulent activities will be reported to the authorities.</p>
+                </div>
+              </div>
               {error && (
                 <div className="bg-red-50 text-red-700 text-sm px-4 py-2 flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
