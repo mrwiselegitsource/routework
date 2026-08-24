@@ -13,13 +13,13 @@ export default function BusinessSolutionsPage() {
       <div className="relative text-white py-24 md:py-32 px-4 overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="/images/business-hero.jpg" 
+            src="/images/business-hero.webp" 
             alt="Business Solutions" 
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
           <div className="hidden w-full h-full bg-blue-900 flex-col items-center justify-center text-white/20">
-            Missing Image: public/images/business-hero.jpg
+            Missing Image: public/images/business-hero.webp
           </div>
           <div className="absolute inset-0 bg-blue-900/85 mix-blend-multiply"></div>
         </div>
@@ -49,13 +49,13 @@ export default function BusinessSolutionsPage() {
           <div className="w-full md:w-1/2">
             <div className="rounded-3xl overflow-hidden shadow-2xl h-[400px] bg-gray-100 group relative">
                <img 
-                 src="/images/business-operations.jpg" 
+                 src="/images/business-operations.webp" 
                  alt="Business Operations" 
                  className="w-full h-full object-cover"
                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                />
                <div className="hidden w-full h-full flex-col items-center justify-center border-2 border-dashed border-gray-300 text-gray-500 text-center font-medium">
-                 Missing Image: public/images/business-operations.jpg
+                 Missing Image: public/images/business-operations.webp
                </div>
                <div className="absolute inset-0 bg-blue-900/5 group-hover:bg-blue-900/10 transition-colors pointer-events-none"></div>
             </div>

@@ -35,13 +35,13 @@ export default function Services() {
       <div className="relative text-white py-32 px-4 text-center overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="/images/services-hero.jpg" 
+            src="/images/services-hero.webp" 
             alt="Our Services" 
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
           <div className="hidden w-full h-full bg-[#0033a0] flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
-            Missing Image: public/images/services-hero.jpg
+            Missing Image: public/images/services-hero.webp
           </div>
           <div className="absolute inset-0 bg-[#0033a0]/80 mix-blend-multiply"></div>
         </div>

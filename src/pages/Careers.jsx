@@ -25,13 +25,13 @@ export default function Careers() {
           <div className="md:w-1/2">
             <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
               <img 
-                src="/images/careers-hero.jpg" 
+                src="/images/careers-hero.webp" 
                 alt="Ghana Post Team" 
                 className="w-full h-auto object-cover"
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
               />
               <div className="hidden w-full h-[300px] bg-white/10 flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
-                Missing Image: public/images/careers-hero.jpg
+                Missing Image: public/images/careers-hero.webp
               </div>
             </div>
           </div>
@@ -51,13 +51,13 @@ export default function Careers() {
         <div className="md:w-1/2">
           <div className="rounded-2xl overflow-hidden shadow-xl border-4 border-white">
             <img 
-              src="/images/careers-wellbeing.jpg" 
+              src="/images/careers-wellbeing.webp" 
               alt="Well-being" 
               className="w-full h-auto object-cover"
               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
             />
             <div className="hidden w-full h-[300px] bg-gray-200 flex-col items-center justify-center text-gray-400">
-              Missing Image: public/images/careers-wellbeing.jpg
+              Missing Image: public/images/careers-wellbeing.webp
             </div>
           </div>
         </div>
@@ -74,13 +74,13 @@ export default function Careers() {
         <div className="md:w-1/2">
           <div className="rounded-2xl overflow-hidden shadow-xl border-4 border-white">
             <img 
-              src="/images/careers-growth.jpg" 
+              src="/images/careers-growth.webp" 
               alt="Career Growth" 
               className="w-full h-auto object-cover"
               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
             />
             <div className="hidden w-full h-[300px] bg-gray-200 flex-col items-center justify-center text-gray-400">
-              Missing Image: public/images/careers-growth.jpg
+              Missing Image: public/images/careers-growth.webp
             </div>
           </div>
         </div>

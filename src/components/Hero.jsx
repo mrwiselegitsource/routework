@@ -3,9 +3,9 @@ import { ArrowRight, MapPin, Globe, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const HERO_IMAGES = [
-  '/images/hero-bg.jpg',
-  '/images/hero-2.jpg',
-  '/images/hero-3.jpg'
+  '/images/hero-bg.webp',
+  '/images/hero-2.webp',
+  '/images/hero-3.webp'
 ];
 
 export default function Hero() {

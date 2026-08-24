@@ -216,13 +216,13 @@ export default function Track() {
       <div className="relative py-8 md:py-12 px-4 overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="/images/track-hero.jpg"
+            src="/images/track-hero.webp"
             alt="Track & Trace"
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
           <div className="hidden w-full h-full bg-[#001b57] flex-col items-center justify-center text-white/50 border border-white/20">
-            Missing Image: public/images/track-hero.jpg
+            Missing Image: public/images/track-hero.webp
           </div>
           <div className="absolute inset-0 bg-[#001b57]/90"></div>
         </div>

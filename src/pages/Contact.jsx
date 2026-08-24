@@ -54,13 +54,13 @@ export default function Contact() {
       <div className="relative overflow-hidden bg-[#0033a0] text-white">
         <div className="absolute inset-0">
           <img 
-            src="/images/contact-hero.jpg" 
+            src="/images/contact-hero.webp" 
             alt="Contact Us" 
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
           <div className="hidden w-full h-full bg-[#0033a0] flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
-            Missing Image: public/images/contact-hero.jpg
+            Missing Image: public/images/contact-hero.webp
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold mb-6">Contact Us</h1>
           <p className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto">

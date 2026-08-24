@@ -18,13 +18,13 @@ export default function RTI() {
       <div className="relative text-white py-24 px-4 text-center overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="/images/rti-hero.jpg" 
+            src="/images/rti-hero.webp" 
             alt="Right to Information" 
             className="w-full h-full object-cover"
             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
           />
           <div className="hidden w-full h-full bg-blue-900 flex-col items-center justify-center text-white/20">
-            Missing Image: public/images/rti-hero.jpg
+            Missing Image: public/images/rti-hero.webp
           </div>
           <div className="absolute inset-0 bg-blue-900/80 mix-blend-multiply"></div>
         </div>

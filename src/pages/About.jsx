@@ -34,13 +34,13 @@ export default function About() {
           <div className="md:w-1/2">
             <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
               <img 
-                src="/images/about-hero-building.jpg" 
+                src="/images/about-hero-building.webp" 
                 alt="Ghana Post Building" 
                 className="w-full h-auto object-cover"
                 onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
               />
               <div className="hidden w-full h-[300px] bg-white/10 flex-col items-center justify-center text-white/50 border border-white/20 backdrop-blur-sm">
-                Missing Image: public/images/about-hero-building.jpg
+                Missing Image: public/images/about-hero-building.webp
               </div>
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function About() {
             {/* Leader 1 */}
             <div className="bg-white rounded-3xl p-8 shadow-xl shadow-gray-200/40 text-center flex flex-col items-center">
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 mb-6 relative">
-                <img src="/images/leader-rita.jpg" alt="Rita Odilia" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                <img src="/images/leader-rita.webp" alt="Rita Odilia" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                 <div className="hidden w-full h-full bg-gray-200 flex-col items-center justify-center text-gray-400 text-xs text-center p-2">Missing<br/>Image</div>
               </div>
               <h3 className="text-xl font-bold text-[#0f172a] mb-1">RITA ODILIA</h3>
@@ -229,7 +229,7 @@ export default function About() {
             <div className="bg-white rounded-3xl p-8 shadow-xl shadow-gray-200/40 text-center flex flex-col items-center relative transform md:-translate-y-4">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-[#0033a0] rounded-b-lg"></div>
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 mb-6 relative">
-                <img src="/images/leader-stephen.jpg" alt="Stephen Kingsley Boadu Edo" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                <img src="/images/leader-stephen.webp" alt="Stephen Kingsley Boadu Edo" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                 <div className="hidden w-full h-full bg-gray-200 flex-col items-center justify-center text-gray-400 text-xs text-center p-2">Missing<br/>Image</div>
               </div>
               <h3 className="text-xl font-bold text-[#0f172a] mb-1 uppercase">Stephen Kingsley<br/>Boadu Edo</h3>
@@ -239,7 +239,7 @@ export default function About() {
             {/* Leader 3 */}
             <div className="bg-white rounded-3xl p-8 shadow-xl shadow-gray-200/40 text-center flex flex-col items-center">
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 mb-6 relative">
-                <img src="/images/leader-kwesi.jpg" alt="Kwesi Owusu Abrokwa" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                <img src="/images/leader-kwesi.webp" alt="Kwesi Owusu Abrokwa" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                 <div className="hidden w-full h-full bg-gray-200 flex-col items-center justify-center text-gray-400 text-xs text-center p-2">Missing<br/>Image</div>
               </div>
               <h3 className="text-xl font-bold text-[#0f172a] mb-1 uppercase">Kwesi Owusu Abrokwa</h3>

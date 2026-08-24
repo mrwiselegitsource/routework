@@ -9,13 +9,13 @@ export default function BusinessSolutions() {
         <div className="w-full md:w-1/2">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl ring-1 ring-gray-100 group">
             <img 
-              src="/images/pc.jpg" 
+              src="/images/pc.webp" 
               alt="Business Solutions" 
               className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-105 bg-gray-200"
               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
             />
             <div className="hidden w-full h-[400px] bg-gray-200 flex-col items-center justify-center text-gray-500 font-medium">
-              Missing Image: public/images/pc.jpg
+              Missing Image: public/images/pc.webp
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 to-transparent"></div>
           </div>

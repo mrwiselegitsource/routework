@@ -35,7 +35,7 @@ export default function Terms() {
             {/* Disclaimer Image */}
             <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
               <img 
-                src="/images/disclaimer.jpg" 
+                src="/images/disclaimer.webp" 
                 alt="Disclaimer for shipments to the United States" 
                 className="w-full rounded-2xl shadow-sm"
                 onError={(e) => {
@@ -46,7 +46,7 @@ export default function Terms() {
               <div className="hidden w-full aspect-[4/5] bg-gray-100 rounded-2xl flex-col items-center justify-center text-gray-400 p-8 text-center border-2 border-dashed border-gray-200">
                 <AlertCircle className="w-12 h-12 mb-4 text-orange-500" />
                 <p className="font-bold mb-2 text-gray-700">DISCLAIMER</p>
-                <p className="text-sm">Please place your disclaimer image at <strong>public/images/disclaimer.jpg</strong> to display it here.</p>
+                <p className="text-sm">Please place your disclaimer image at <strong>public/images/disclaimer.webp</strong> to display it here.</p>
               </div>
             </div>
 

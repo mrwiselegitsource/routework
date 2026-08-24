@@ -45,7 +45,7 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
     try {
       // In a real implementation, you would upload to Supabase Storage here.
       // For this mock, we just simulate the upload and update the DB.
-      let uploadedUrl = 'mock-proof-url.jpg'; 
+      let uploadedUrl = 'mock-proof-url.webp'; 
       if (db.uploadPaymentProof) {
          const { url } = await db.uploadPaymentProof(orderId, proofFile);
          uploadedUrl = url;
