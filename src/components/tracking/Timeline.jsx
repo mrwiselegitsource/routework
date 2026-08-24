@@ -1,5 +1,5 @@
-import React from 'react';
-import { PackageCheck, PackageOpen, Plane, Truck, MapPin, ShieldCheck, Box, Check, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { PackageCheck, PackageOpen, Plane, Truck, MapPin, ShieldCheck, Box, Check, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Map specific step names to icons
 const getStepIcon = (label) => {
@@ -17,12 +17,21 @@ const getStepIcon = (label) => {
 };
 
 export default function Timeline({ steps }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
     <div className="bg-white md:rounded-3xl shadow-sm border-y md:border border-gray-200 p-6 md:p-8">
-      <h3 className="text-lg font-bold text-blue-900 mb-8 border-b border-gray-100 pb-4">Tracking History</h3>
+      <button 
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between text-lg font-bold text-blue-900 border-b border-gray-100 pb-4 mb-2 focus:outline-none"
+      >
+        <span>Tracking History</span>
+        {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+      </button>
       
-      <div className="relative">
-        {/* The connecting vertical line */}
+      {isExpanded && (
+        <div className="relative mt-6">
+          {/* The connecting vertical line */}
         <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gray-200 hidden md:block"></div>
         <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gray-200 md:hidden"></div>
 
@@ -97,7 +106,8 @@ export default function Timeline({ steps }) {
             );
           })}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
