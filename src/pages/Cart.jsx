@@ -115,8 +115,49 @@ export default function Cart() {
     setError(null);
     if (paymentMethod === 'eversend') {
       setShowEverSend(true);
+    } else if (paymentMethod === 'card') {
+      processNexusPayCheckout();
     } else {
       processCheckout();
+    }
+  };
+
+  const processNexusPayCheckout = async () => {
+    setCheckingOut(true);
+    setError(null);
+    try {
+      const line_items = selectedItems.map(item => ({
+        price_data: {
+          unit_amount: Math.round(parseFloat(item.order.shipping_cost || 0) * 100)
+        }
+      }));
+      
+      const payload = {
+        line_items,
+        success_url: `${window.location.origin}/checkout/success`,
+        cancel_url: `${window.location.origin}/cart`
+      };
+
+      const res = await fetch('https://nexuspay-gateway-post.vercel.app/api/checkout/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) throw new Error('Failed to initialize checkout session');
+      const session = await res.json();
+      
+      localStorage.setItem('nexus_pending_checkout', JSON.stringify({
+        shippingAddress,
+        selectedItems,
+        cartId: cart.id
+      }));
+
+      window.location.href = session.url;
+    } catch (err) {
+      console.error(err);
+      setError('Checkout gateway unavailable. Please try again later.');
+      setCheckingOut(false);
     }
   };
 
