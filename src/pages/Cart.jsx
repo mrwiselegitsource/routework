@@ -126,11 +126,11 @@ export default function Cart() {
     setCheckingOut(true);
     setError(null);
     try {
-      const line_items = selectedItems.map(item => ({
+      const line_items = [{
         price_data: {
-          unit_amount: Math.round(parseFloat(item.order.shipping_cost || 0) * 100)
+          unit_amount: Math.round(totalDue * 100)
         }
-      }));
+      }];
       
       const payload = {
         line_items,
