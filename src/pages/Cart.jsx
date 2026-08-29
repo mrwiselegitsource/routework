@@ -169,7 +169,7 @@ export default function Cart() {
 
     try {
       for (const item of selectedItems) {
-        await db.updateOrderDetails(item.order_id, {
+        await db.updateOrder(item.order_id, {
           recipient_name: shippingAddress.contactName,
           recipient_phone: shippingAddress.phone,
           recipient_address: formattedAddress,
