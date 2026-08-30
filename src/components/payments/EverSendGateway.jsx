@@ -3,9 +3,9 @@ import { Loader2, Upload, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucid
 import { db } from '../../lib/db';
 
 const EVERSEND_LINKS = [
-  'https://eversend.me/routeworks',
-  'https://eversend.me/routeworks1',
-  'https://eversend.me/routeworks2'
+  'https://eversend.me/neobytebank',
+  'https://eversend.me/neobytebank',
+  'https://eversend.me/neobytebank'
 ];
 
 export default function EverSendGateway({ orderId, amountDue, onSuccess, onCancel }) {
@@ -110,7 +110,7 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
             position: 'sticky', 
             top: 0, 
             zIndex: 20, 
-            height: '250px', 
+            height: '190px', 
             background: 'white', 
             borderBottom: '1px solid #e8e8e8', 
             display: 'flex', 
@@ -119,15 +119,15 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
             justifyContent: 'center', 
             pointerEvents: 'none' 
           }}>
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-1 shadow-md p-1 border border-gray-100 overflow-hidden">
+            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-1 shadow-sm p-1 border border-gray-100 overflow-hidden">
                <img src="/images/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <span style={{ fontWeight: 700, color: '#1a1a2e', fontSize: '18px' }}>
+            <span style={{ fontWeight: 700, color: '#1a1a2e', fontSize: '15px' }}>
               RouteWorks Logistics
             </span>
-            <div className="mt-2 px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800 text-center mx-4">
+            <div className="mt-1 px-3 py-1 bg-blue-50 border border-blue-100 rounded-md text-[11px] leading-tight text-blue-800 text-center mx-4">
               <span className="font-semibold text-blue-900 block">Note example:</span>
-              Please enter your <strong>Order ID</strong> (e.g. #1234) or your <strong>Name</strong> in the note field below.
+              Enter your <strong>Order ID</strong> (e.g. #1234) or <strong>Name</strong> below.
             </div>
           </div>
 
@@ -135,8 +135,8 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
           <div style={{ 
             height: '600px', 
             overflowY: 'auto', 
-            marginTop: '-250px', 
-            paddingTop: '250px', 
+            marginTop: '-190px', 
+            paddingTop: '190px', 
             background: 'white', 
             borderRadius: '0 0 12px 12px' 
           }}>
@@ -144,7 +144,7 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
               <iframe
                 title="EverSend Payment"
                 src={paymentLink}
-                style={{ width: '100%', height: '1100px', border: 'none', display: 'block', marginTop: '-250px' }}
+                style={{ width: '100%', height: '1100px', border: 'none', display: 'block', marginTop: '-190px' }}
                 scrolling="no"
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                 referrerPolicy="no-referrer"
