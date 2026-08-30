@@ -110,7 +110,7 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
             position: 'sticky', 
             top: 0, 
             zIndex: 20, 
-            height: '322px', 
+            height: '250px', 
             background: 'white', 
             borderBottom: '1px solid #e8e8e8', 
             display: 'flex', 
@@ -119,21 +119,24 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
             justifyContent: 'center', 
             pointerEvents: 'none' 
           }}>
-            <div className="w-20 h-20 bg-[#0033a0] rounded-full flex items-center justify-center mb-3 shadow-md">
-               <span className="text-white font-bold text-2xl">RW</span>
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-1 shadow-md p-1 border border-gray-100 overflow-hidden">
+               <img src="/images/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <span style={{ fontWeight: 700, color: '#1a1a2e', fontSize: '20px' }}>
+            <span style={{ fontWeight: 700, color: '#1a1a2e', fontSize: '18px' }}>
               RouteWorks Logistics
             </span>
-            <span className="text-sm text-gray-500 mt-1">Verified Merchant</span>
+            <div className="mt-2 px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-md text-xs text-blue-800 text-center mx-4">
+              <span className="font-semibold text-blue-900 block">Note example:</span>
+              Please enter your <strong>Order ID</strong> (e.g. #1234) or your <strong>Name</strong> in the note field below.
+            </div>
           </div>
 
           {/* SCROLLABLE IFRAME CONTAINER */}
           <div style={{ 
             height: '600px', 
             overflowY: 'auto', 
-            marginTop: '-321px', 
-            paddingTop: '321px', 
+            marginTop: '-250px', 
+            paddingTop: '250px', 
             background: 'white', 
             borderRadius: '0 0 12px 12px' 
           }}>
@@ -141,7 +144,7 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
               <iframe
                 title="EverSend Payment"
                 src={paymentLink}
-                style={{ width: '100%', height: '1100px', border: 'none', display: 'block', marginTop: '-321px' }}
+                style={{ width: '100%', height: '1100px', border: 'none', display: 'block', marginTop: '-250px' }}
                 scrolling="no"
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                 referrerPolicy="no-referrer"

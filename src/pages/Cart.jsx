@@ -338,8 +338,11 @@ export default function Cart() {
                         <CheckCircle2 className="w-4 h-4 text-white" />
                       </div>
                     )}
-                    <div className="h-8 flex items-center mb-1">
-                      <img src="https://eversend.co/assets/eversend-logo.png" alt="Eversend" className="h-6 object-contain" />
+                    <div className="h-8 flex flex-col items-center mb-1">
+                      <img src="https://eversend.com/wp-content/uploads/2021/04/eversend-logo-1.png" alt="EverSend" className="h-6 object-contain mb-1" />
+                      <div className="bg-[#40e0d0] text-gray-900 px-2 py-0.5 rounded text-[10px] font-bold">
+                        MTN, Telecel, Tigo
+                      </div>
                     </div>
                     <span className={`font-bold ${paymentMethod === 'eversend' ? 'text-[#0033a0]' : 'text-gray-700'}`}>EverSend</span>
                   </div>
