@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { User, Package, ShoppingCart, Search, LogOut, Mail } from 'lucide-react';
 import { auth } from '../../lib/db';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
@@ -22,6 +22,9 @@ export default function CustomerLayout() {
   const { profile } = useCustomerAuth();
   const { cart } = useCart();
   const { unreadCount } = useCustomerMessages();
+  const location = useLocation();
+
+  const isCheckoutFlow = location.pathname.startsWith('/checkout');
 
   const handleLogout = async () => {
     await auth.customerSignOut();
@@ -97,9 +100,9 @@ export default function CustomerLayout() {
       </main>
 
       {/* Floating Bottom Nav for Mobile */}
-      <MobileBottomNav />
+      {!isCheckoutFlow && <MobileBottomNav />}
 
-      <Footer />
+      {!isCheckoutFlow && <Footer />}
     </div>
   );
 }
