@@ -37,6 +37,7 @@ import CustomerOrders from './pages/CustomerOrders';
 import CustomerMessages from './pages/CustomerMessages';
 import Cart from './pages/Cart';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import Checkout from './pages/Checkout';
 
 import { CustomerMessagesProvider } from './context/CustomerMessagesContext';
 
@@ -111,6 +112,7 @@ function App() {
                 <Route path="/account/orders" element={<CustomerOrders />} />
                 <Route path="/account/messages" element={<CustomerMessages />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/checkout/success" element={<CheckoutSuccess />} />
               </Route>
 
