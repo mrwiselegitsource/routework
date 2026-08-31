@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Outlet, Link } from 'react-router-dom';
+import { Routes, Route, Outlet, Link, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Package } from 'lucide-react';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
@@ -62,6 +62,9 @@ import AdminAutomations from './pages/admin/AdminAutomations';
 import Footer from './components/Footer';
 
 function PublicAppLayout() {
+  const location = useLocation();
+  const hideFooter = location.pathname === '/track';
+
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col relative pb-16 md:pb-0">
       <Topbar />
@@ -69,7 +72,7 @@ function PublicAppLayout() {
       <main className="flex-1 animate-[fadeIn_0.8s_ease-out]">
         <Outlet />
       </main>
-      <Footer />
+      {!hideFooter && <Footer />}
       
       {/* Floating Bottom Nav for Mobile */}
       <MobileBottomNav />

@@ -101,8 +101,6 @@ export default function CustomerLayout() {
 
       {/* Floating Bottom Nav for Mobile */}
       {!isCheckoutFlow && <MobileBottomNav />}
-
-      {!isCheckoutFlow && <Footer />}
     </div>
   );
 }
