@@ -40,13 +40,15 @@ export const localDb = {
     if (!o) return null
     const {
       order_id, item_name, description, image_url, sender_name, sender_country,
+      upfront_fee, upfront_payment_status, shipping_fee, shipping_payment_status,
       amount_due, currency, current_status, current_location, estimated_delivery,
-      support_phone, payment_status, recipient_name,
+      support_phone, payment_status, recipient_name, recipient_phone, recipient_address, recipient_region
     } = o
     return {
       order_id, item_name, description, image_url, sender_name, sender_country,
+      upfront_fee, upfront_payment_status, shipping_fee, shipping_payment_status,
       amount_due, currency, current_status, current_location, estimated_delivery,
-      support_phone, payment_status, recipient_name,
+      support_phone, payment_status, recipient_name, recipient_phone, recipient_address, recipient_region
     }
   },
 
@@ -133,7 +135,12 @@ export const localDb = {
 
   async updatePaymentStatus(orderId, status, reference) {
     table.orders = table.orders.map((o) =>
-      o.order_id === orderId ? { ...o, payment_status: status, payment_reference: reference ?? o.payment_reference } : o
+      o.order_id === orderId ? { 
+        ...o, 
+        payment_status: status, 
+        payment_reference: reference ?? o.payment_reference,
+        ...(status === 'paid' ? { upfront_payment_status: 'paid', shipping_payment_status: 'paid', amount_due: 0 } : {})
+      } : o
     )
     logActivity(null, orderId, status === 'paid' ? 'mock_payment_completed' : 'payment_status_changed')
     return this.getOrder(orderId)

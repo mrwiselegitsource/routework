@@ -26,7 +26,11 @@ export default function Cart() {
 
   // Calculate totals
   const outstandingBalance = selectedItems.reduce((sum, item) => {
-    return sum + (item.order?.payment_status === 'unpaid' ? (parseFloat(item.order?.amount_due) || 0) : 0);
+    if (item.order?.payment_status === 'paid') return sum;
+    const amount = typeof item.order?.amount_due === 'number'
+      ? item.order.amount_due
+      : parseFloat(item.order?.amount_due || 0);
+    return sum + amount;
   }, 0);
 
   const handleCheckoutClick = () => {
@@ -122,9 +126,16 @@ export default function Cart() {
                         </h3>
                       </div>
                       
-                      <div className="mt-2 flex justify-between items-center">
+                      <div className="mt-2 flex items-center gap-2">
                         {item.order?.payment_status === 'unpaid' ? (
-                          <span className="font-bold text-gray-900">GH₵ {item.order.amount_due}</span>
+                          <>
+                            <span className="font-bold text-gray-900">GH₵ {item.order.amount_due}</span>
+                            {item.order?.upfront_payment_status === 'paid' && (
+                              <span className="text-[10px] text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded font-semibold">
+                                Upfront Paid by Sender
+                              </span>
+                            )}
+                          </>
                         ) : (
                           <span className="text-xs font-bold text-green-600">Shipment Paid</span>
                         )}

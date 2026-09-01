@@ -76,10 +76,18 @@ export default function Checkout() {
   const selectedItems = items.filter(item => selectedItemIds.includes(item.order_id));
 
   const outstandingBalance = selectedItems.reduce((sum, item) => {
-    return sum + (item.order?.payment_status === 'unpaid' ? (parseFloat(item.order?.amount_due) || 0) : 0);
+    if (item.order?.payment_status === 'paid') return sum;
+    const amount = typeof item.order?.amount_due === 'number' 
+      ? item.order.amount_due 
+      : parseFloat(item.order?.amount_due || 0);
+    return sum + amount;
   }, 0);
 
   const deliveryFee = selectedItems.reduce((sum, item) => {
+    if (item.order?.shipping_payment_status === 'paid' || item.order?.payment_status === 'paid') return sum;
+    // If order already has a preset shipping fee > 0, don't duplicate dynamic fee
+    if (item.order?.shipping_fee > 0) return sum;
+
     const regionName = shippingAddress.region;
     if (!regionName) return sum;
 

@@ -42,6 +42,10 @@ export default function OrderDetail() {
     setEditValues({
       item_name: orderData?.item_name || '',
       description: orderData?.description || '',
+      upfront_fee: orderData?.upfront_fee ?? 0,
+      upfront_payment_status: orderData?.upfront_payment_status || 'paid',
+      shipping_fee: orderData?.shipping_fee ?? 0,
+      shipping_payment_status: orderData?.shipping_payment_status || 'unpaid',
       amount_due: orderData?.amount_due || 0,
       delivery_duration_hours: orderData?.delivery_duration_hours || ''
     })
@@ -113,10 +117,20 @@ export default function OrderDetail() {
     e.preventDefault()
     setSavingEdit(true)
     try {
+      const upfrontFeeNum = Number(editValues.upfront_fee || 0);
+      const shippingFeeNum = Number(editValues.shipping_fee || 0);
+      const upfrontDue = editValues.upfront_payment_status === 'unpaid' ? upfrontFeeNum : 0;
+      const shippingDue = editValues.shipping_payment_status === 'unpaid' ? shippingFeeNum : 0;
+      const calculatedAmountDue = upfrontDue + shippingDue;
+
       await db.updateOrder(id, {
         item_name: editValues.item_name,
         description: editValues.description,
-        amount_due: Number(editValues.amount_due),
+        upfront_fee: upfrontFeeNum,
+        upfront_payment_status: editValues.upfront_payment_status,
+        shipping_fee: shippingFeeNum,
+        shipping_payment_status: editValues.shipping_payment_status,
+        amount_due: calculatedAmountDue,
         delivery_duration_hours: editValues.delivery_duration_hours ? Number(editValues.delivery_duration_hours) : null
       })
       await load()
@@ -217,10 +231,36 @@ export default function OrderDetail() {
                 <textarea value={editValues.description} onChange={e => setEditValues({...editValues, description: e.target.value})} rows={2} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" />
               </div>
               <div>
-                <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Amount Due ({order.currency})</label>
-                <input type="number" value={editValues.amount_due} onChange={e => setEditValues({...editValues, amount_due: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" />
+                <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Upfront Fee ({order.currency})</label>
+                <input type="number" value={editValues.upfront_fee} onChange={e => setEditValues({...editValues, upfront_fee: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" />
               </div>
               <div>
+                <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Upfront Status</label>
+                <select value={editValues.upfront_payment_status} onChange={e => setEditValues({...editValues, upfront_payment_status: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm bg-white">
+                  <option value="paid">Paid by Sender</option>
+                  <option value="unpaid">Unpaid (Receiver Pays)</option>
+                </select>
+              </div>
+              <div>
+                <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Shipping Fee ({order.currency})</label>
+                <input type="number" value={editValues.shipping_fee} onChange={e => setEditValues({...editValues, shipping_fee: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" />
+              </div>
+              <div>
+                <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Shipping Status</label>
+                <select value={editValues.shipping_payment_status} onChange={e => setEditValues({...editValues, shipping_payment_status: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm bg-white">
+                  <option value="unpaid">Receiver Pays (Collect)</option>
+                  <option value="paid">Paid by Sender (Prepaid)</option>
+                </select>
+              </div>
+              <div className="sm:col-span-2 bg-gray-50 p-3 rounded-md border border-gray-200 text-xs text-gray-700">
+                <div className="flex justify-between font-bold">
+                  <span>Calculated Receiver Total Due:</span>
+                  <span className="text-[#0033a0]">
+                    {order.currency} {((editValues.upfront_payment_status === 'unpaid' ? Number(editValues.upfront_fee || 0) : 0) + (editValues.shipping_payment_status === 'unpaid' ? Number(editValues.shipping_fee || 0) : 0)).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <div className="sm:col-span-2">
                 <label className="font-body text-xs font-semibold text-[var(--color-ink)]">Automated Timeframe (Hours)</label>
                 <input type="number" value={editValues.delivery_duration_hours} onChange={e => setEditValues({...editValues, delivery_duration_hours: e.target.value})} className="mt-1 w-full rounded-md border border-[var(--color-line)] px-3 py-2 font-body text-sm" placeholder="e.g. 48 for 2 days" />
               </div>

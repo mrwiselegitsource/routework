@@ -194,21 +194,45 @@ export default function Track() {
             </ol>
           </div>
 
-          {/* Shipment details */}
-          <div className="mt-6 grid grid-cols-2 gap-4 rounded-xl border border-[var(--color-line)] bg-white p-6 sm:grid-cols-3">
-            {[
-              ['Order ID', order.order_id],
-              ['Origin', order.sender_country],
-              ['Current location', order.current_location],
-              ['Payment status', order.payment_status],
-              ['Amount due', `${order.currency} ${order.amount_due}`],
-              ['Estimated delivery', order.estimated_delivery],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <p className="font-body text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-soft)]">{label}</p>
-                <p className="mt-0.5 font-body text-sm text-[var(--color-ink)]">{value || '—'}</p>
+          {/* Fee Breakdown Card */}
+          <div className="mt-6 rounded-xl border border-[var(--color-line)] bg-white p-6">
+            <h3 className="font-display text-sm font-bold text-[var(--color-ink)] mb-3">Shipment Fee & Payment Breakdown</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-body mb-4">
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <span className="text-[var(--color-ink-soft)] uppercase font-semibold block mb-1">Upfront / Package Fee</span>
+                <span className="text-sm font-bold text-[var(--color-ink)]">
+                  {order.currency} {Number(order.upfront_fee || 0).toFixed(2)}
+                </span>
+                <span className={`block mt-1 text-[11px] font-bold ${order.upfront_payment_status === 'paid' ? 'text-green-600' : 'text-amber-600'}`}>
+                  • {order.upfront_payment_status === 'paid' ? 'Paid by Sender' : 'Owed on Delivery'}
+                </span>
               </div>
-            ))}
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <span className="text-[var(--color-ink-soft)] uppercase font-semibold block mb-1">Shipping / Delivery Fee</span>
+                <span className="text-sm font-bold text-[var(--color-ink)]">
+                  {order.currency} {Number(order.shipping_fee || 0).toFixed(2)}
+                </span>
+                <span className={`block mt-1 text-[11px] font-bold ${order.shipping_payment_status === 'paid' ? 'text-green-600' : 'text-amber-600'}`}>
+                  • {order.shipping_payment_status === 'paid' ? 'Prepaid by Sender' : 'Owed on Delivery'}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 pt-4 border-t border-[var(--color-line)]">
+              {[
+                ['Order ID', order.order_id],
+                ['Origin', order.sender_country],
+                ['Current location', order.current_location],
+                ['Overall Status', order.payment_status === 'paid' ? 'Paid' : 'Unpaid'],
+                ['Receiver Total Due', `${order.currency} ${Number(order.amount_due || 0).toFixed(2)}`],
+                ['Estimated delivery', order.estimated_delivery],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <p className="font-body text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-soft)]">{label}</p>
+                  <p className="mt-0.5 font-body text-sm font-bold text-[var(--color-ink)]">{value || '—'}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Support */}

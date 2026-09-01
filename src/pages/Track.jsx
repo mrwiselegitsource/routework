@@ -354,6 +354,11 @@ export default function Track() {
                   method="Standard Logistics"
                   eta={formattedEta}
                   paymentStatus={order.payment_status}
+                  upfrontFee={order.upfront_fee}
+                  upfrontStatus={order.upfront_payment_status}
+                  shippingFee={order.shipping_fee}
+                  shippingStatus={order.shipping_payment_status}
+                  amountDue={order.amount_due}
                 />
 
                 <ClaimGate

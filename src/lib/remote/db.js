@@ -163,9 +163,14 @@ export const remoteDb = {
   },
 
   async updatePaymentStatus(orderId, status, reference) {
+    const updatePayload = { 
+      payment_status: status, 
+      ...(reference ? { payment_reference: reference } : {}),
+      ...(status === 'paid' ? { upfront_payment_status: 'paid', shipping_payment_status: 'paid', amount_due: 0 } : {})
+    }
     const { error } = await supabase
       .from('orders')
-      .update({ payment_status: status, ...(reference ? { payment_reference: reference } : {}) })
+      .update(updatePayload)
       .eq('order_id', orderId)
     if (error) throw error
     
