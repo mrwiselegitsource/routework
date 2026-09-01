@@ -86,14 +86,30 @@ export const remoteDb = {
 
   async createOrder(fields, createdBy) {
     const orderId = generateOrderId()
-    const { data, error } = await supabase
-      .from('orders')
-      .insert({ order_id: orderId, current_status: 'order_confirmed', ...fields, created_by: createdBy })
-      .select()
-      .single()
-    if (error) throw error
-    await supabase.from('activity_log').insert({ user_id: createdBy, order_id: orderId, action: 'created_order' })
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .insert({ order_id: orderId, current_status: 'order_confirmed', ...fields, created_by: createdBy })
+        .select()
+        .single()
+      if (error) throw error
+      await supabase.from('activity_log').insert({ user_id: createdBy, order_id: orderId, action: 'created_order' })
+      return data
+    } catch (err) {
+      if (err.message && (err.message.includes('shipping_fee') || err.message.includes('upfront_fee') || err.message.includes('schema cache'))) {
+        console.warn("Supabase orders table missing fee columns, falling back to core fields", err)
+        const { upfront_fee, upfront_payment_status, shipping_fee, shipping_payment_status, ...coreFields } = fields
+        const { data, error } = await supabase
+          .from('orders')
+          .insert({ order_id: orderId, current_status: 'order_confirmed', ...coreFields, created_by: createdBy })
+          .select()
+          .single()
+        if (error) throw error
+        await supabase.from('activity_log').insert({ user_id: createdBy, order_id: orderId, action: 'created_order' })
+        return data
+      }
+      throw err
+    }
   },
 
   async uploadPaymentProof(orderId, file) {
@@ -163,16 +179,28 @@ export const remoteDb = {
   },
 
   async updatePaymentStatus(orderId, status, reference) {
-    const updatePayload = { 
-      payment_status: status, 
-      ...(reference ? { payment_reference: reference } : {}),
-      ...(status === 'paid' ? { upfront_payment_status: 'paid', shipping_payment_status: 'paid', amount_due: 0 } : {})
+    try {
+      const updatePayload = { 
+        payment_status: status, 
+        ...(reference ? { payment_reference: reference } : {}),
+        ...(status === 'paid' ? { upfront_payment_status: 'paid', shipping_payment_status: 'paid', amount_due: 0 } : {})
+      }
+      const { error } = await supabase
+        .from('orders')
+        .update(updatePayload)
+        .eq('order_id', orderId)
+      if (error) throw error
+    } catch (err) {
+      if (err.message && (err.message.includes('shipping') || err.message.includes('upfront') || err.message.includes('schema cache'))) {
+        const { error } = await supabase
+          .from('orders')
+          .update({ payment_status: status, ...(reference ? { payment_reference: reference } : {}), ...(status === 'paid' ? { amount_due: 0 } : {}) })
+          .eq('order_id', orderId)
+        if (error) throw error
+      } else {
+        throw err
+      }
     }
-    const { error } = await supabase
-      .from('orders')
-      .update(updatePayload)
-      .eq('order_id', orderId)
-    if (error) throw error
     
     // Automation trigger: if marked paid, schedule the 7 automated tracking events based on delivery_duration_hours
     if (status === 'paid') {
@@ -261,10 +289,21 @@ export const remoteDb = {
   },
 
   async updateOrder(orderId, fields) {
-    const { data, error } = await supabase.from('orders').update(fields).eq('order_id', orderId).select().single()
-    if (error) throw error
-    await supabase.from('activity_log').insert({ user_id: null, order_id: orderId, action: 'updated_order' })
-    return data
+    try {
+      const { data, error } = await supabase.from('orders').update(fields).eq('order_id', orderId).select().single()
+      if (error) throw error
+      await supabase.from('activity_log').insert({ user_id: null, order_id: orderId, action: 'updated_order' })
+      return data
+    } catch (err) {
+      if (err.message && (err.message.includes('shipping') || err.message.includes('upfront') || err.message.includes('schema cache'))) {
+        const { upfront_fee, upfront_payment_status, shipping_fee, shipping_payment_status, ...coreFields } = fields
+        const { data, error } = await supabase.from('orders').update(coreFields).eq('order_id', orderId).select().single()
+        if (error) throw error
+        await supabase.from('activity_log').insert({ user_id: null, order_id: orderId, action: 'updated_order' })
+        return data
+      }
+      throw err
+    }
   },
 
   async getOrderMedia(orderId) {
