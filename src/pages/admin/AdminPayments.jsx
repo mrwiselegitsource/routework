@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { usePaymentSettings } from '../../context/PaymentSettingsContext';
 
 // ─── Gateway toggle card ────────────────────────────────────────────────────
-function GatewayCard({ id, label, description, logo, accentColor, bgColor, enabled, saving, onToggle }) {
+function GatewayCard({ id, label, description, logo, accentColor, bgColor, enabled, onToggle }) {
   return (
     <div
       className={`relative rounded-2xl border-2 p-5 transition-all duration-300 ${
@@ -51,23 +51,14 @@ function GatewayCard({ id, label, description, logo, accentColor, bgColor, enabl
         </span>
         <button
           onClick={() => onToggle(id, !enabled)}
-          disabled={saving}
           aria-label={`${enabled ? 'Disable' : 'Enable'} ${label}`}
-          className={`relative flex items-center gap-2 px-4 py-1.5 rounded-full font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            saving ? 'opacity-50 cursor-wait' : 'cursor-pointer'
-          } ${
+          className={`relative flex items-center gap-2 px-4 py-1.5 rounded-full font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer ${
             enabled
               ? 'bg-green-500 hover:bg-green-600 text-white focus:ring-green-400'
               : 'bg-gray-300 hover:bg-gray-400 text-gray-700 focus:ring-gray-400'
           }`}
         >
-          {saving ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : enabled ? (
-            <ToggleRight size={16} />
-          ) : (
-            <ToggleLeft size={16} />
-          )}
+          {enabled ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
           {enabled ? 'ON' : 'OFF'}
         </button>
       </div>
@@ -80,14 +71,7 @@ export default function AdminPayments() {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const { settings, saveSettings } = usePaymentSettings();
-  const [localSettings, setLocalSettings] = useState(null);
-  const [saving, setSaving] = useState(null); // id of the gateway being saved
   const [saved, setSaved] = useState(false);
-
-  // Sync local settings from context once loaded
-  useEffect(() => {
-    if (settings) setLocalSettings(settings);
-  }, [settings]);
 
   useEffect(() => {
     db.getOrders().then(data => {
@@ -96,33 +80,16 @@ export default function AdminPayments() {
     });
   }, []);
 
-  const handleToggle = useCallback(async (gatewayId, newValue) => {
-    if (!localSettings) return;
-    setSaving(gatewayId);
-    const next = { ...localSettings, [`${gatewayId}_enabled`]: newValue };
-    setLocalSettings(next);
-    try {
-      await saveSettings(next);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    } catch {
-      // revert on error
-      setLocalSettings(localSettings);
-    } finally {
-      setSaving(null);
-    }
-  }, [localSettings, saveSettings]);
+  // Synchronous — localStorage never fails, no async needed
+  const handleToggle = useCallback((gatewayId, newValue) => {
+    const next = { ...settings, [`${gatewayId}_enabled`]: newValue };
+    saveSettings(next);                    // instant localStorage write
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  }, [settings, saveSettings]);
 
   const totalRevenue = orders.filter(o => o.payment_status === 'paid').reduce((sum, o) => sum + (o.delivery_fee || 0), 0);
   const pendingRevenue = orders.filter(o => o.payment_status === 'unpaid').reduce((sum, o) => sum + (o.delivery_fee || 0), 0);
-
-  if (!localSettings) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0033a0]" />
-      </div>
-    );
-  }
 
   const gateways = [
     {
@@ -165,7 +132,7 @@ export default function AdminPayments() {
     },
   ];
 
-  const enabledCount = gateways.filter(g => localSettings[`${g.id}_enabled`]).length;
+  const enabledCount = gateways.filter(g => settings[`${g.id}_enabled`] !== false).length;
 
   return (
     <div className="space-y-8">
@@ -234,8 +201,7 @@ export default function AdminPayments() {
             <GatewayCard
               key={g.id}
               {...g}
-              enabled={!!localSettings[`${g.id}_enabled`]}
-              saving={saving === g.id}
+              enabled={!!settings[`${g.id}_enabled`]}
               onToggle={handleToggle}
             />
           ))}

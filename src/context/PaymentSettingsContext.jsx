@@ -1,39 +1,25 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { db } from '../lib/db';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { loadPaymentSettings, savePaymentSettingsLocally } from '../lib/local/paymentSettings';
 
 const DEFAULT_SETTINGS = { card_enabled: true, eversend_enabled: true, paypal_enabled: true };
 
 const PaymentSettingsContext = createContext({
   settings: DEFAULT_SETTINGS,
-  loading: true,
-  saveSettings: async () => {},
-  refresh: async () => {},
+  saveSettings: () => {},
 });
 
 export function PaymentSettingsProvider({ children }) {
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [loading, setLoading] = useState(true);
+  // Read from localStorage synchronously on first render — no async needed,
+  // no DB call, no risk of a save-failure reverting the toggle.
+  const [settings, setSettings] = useState(() => loadPaymentSettings());
 
-  const refresh = useCallback(async () => {
-    try {
-      const data = await db.getPaymentSettings();
-      setSettings(data ?? DEFAULT_SETTINGS);
-    } catch {
-      setSettings(DEFAULT_SETTINGS);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { refresh(); }, [refresh]);
-
-  const saveSettings = useCallback(async (next) => {
-    setSettings(next);                        // optimistic update
-    await db.updatePaymentSettings(next);
+  const saveSettings = useCallback((next) => {
+    setSettings(next);
+    savePaymentSettingsLocally(next);
   }, []);
 
   return (
-    <PaymentSettingsContext.Provider value={{ settings, loading, saveSettings, refresh }}>
+    <PaymentSettingsContext.Provider value={{ settings, saveSettings }}>
       {children}
     </PaymentSettingsContext.Provider>
   );
