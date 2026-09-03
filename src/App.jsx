@@ -40,6 +40,7 @@ import CheckoutSuccess from './pages/CheckoutSuccess';
 import Checkout from './pages/Checkout';
 
 import { CustomerMessagesProvider } from './context/CustomerMessagesContext';
+import { PaymentSettingsProvider } from './context/PaymentSettingsContext';
 
 // Admin imports
 import RequireAuth from './components/auth/RequireAuth';
@@ -85,8 +86,9 @@ function App() {
     <HelmetProvider>
       <CartProvider>
         <TrackingProvider>
-          <CustomerMessagesProvider>
-            <Routes>
+          <PaymentSettingsProvider>
+            <CustomerMessagesProvider>
+              <Routes>
               {/* Public Facing Routes */}
               <Route element={<PublicAppLayout />}>
                 <Route path="/" element={<Home />} />
@@ -138,6 +140,7 @@ function App() {
               </Route>
             </Routes>
           </CustomerMessagesProvider>
+          </PaymentSettingsProvider>
         </TrackingProvider>
       </CartProvider>
     </HelmetProvider>

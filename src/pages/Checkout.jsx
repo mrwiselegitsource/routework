@@ -7,14 +7,23 @@ import { useCustomerAuth } from '../context/CustomerAuthContext';
 import EditAddressModal from '../components/checkout/EditAddressModal';
 import { saveAddressLocally, loadAddressLocally } from '../lib/local/address';
 import EverSendGateway from '../components/payments/EverSendGateway';
+import { usePaymentSettings } from '../context/PaymentSettingsContext';
 
 export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { cart, removeFromCart, loading: cartLoading } = useCart();
   const { profile } = useCustomerAuth();
+  const { settings: gwSettings } = usePaymentSettings();
 
   const selectedItemIds = location.state?.selectedItemIds || [];
+
+  // Determine which gateways the admin has enabled
+  const gatewayEnabled = {
+    card: gwSettings?.card_enabled !== false,
+    eversend: gwSettings?.eversend_enabled !== false,
+    paypal: gwSettings?.paypal_enabled !== false,
+  };
 
   const [regions, setRegions] = useState([]);
   const [pricingRules, setPricingRules] = useState([]);
@@ -24,6 +33,14 @@ export default function Checkout() {
   const [success, setSuccess] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [showEverSend, setShowEverSend] = useState(false);
+
+  // Auto-select first enabled gateway whenever settings load/change
+  useEffect(() => {
+    if (!gwSettings) return;
+    const order = ['card', 'eversend', 'paypal'];
+    const first = order.find(id => gwSettings[`${id}_enabled`] !== false);
+    if (first) setPaymentMethod(first);
+  }, [gwSettings]);
   
   // Master Shipping Address State
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -278,66 +295,77 @@ export default function Checkout() {
         <div className="bg-white px-4 py-6">
           <h2 className="text-base font-bold text-gray-900 mb-4">Select Payment Method</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div 
-              onClick={() => setPaymentMethod('card')}
-              className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
-                paymentMethod === 'card' 
-                  ? 'border-[#ff3b30] bg-red-50' 
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              {paymentMethod === 'card' && (
-                <div className="absolute top-2 right-2 bg-[#ff3b30] rounded-full p-0.5">
-                  <CheckCircle2 className="w-4 h-4 text-white" />
-                </div>
-              )}
-              <div className="flex gap-2 items-center h-8 mb-1">
-                <img src="https://cdn.iconscout.com/icon/free/png-256/visa-3-226460.png" alt="Visa" className="h-4 object-contain" />
-                <img src="https://cdn.iconscout.com/icon/free/png-256/mastercard-2-226462.png" alt="Mastercard" className="h-6 object-contain" />
-              </div>
-              <span className={`font-bold ${paymentMethod === 'card' ? 'text-[#ff3b30]' : 'text-gray-700'}`}>Credit / Debit</span>
-            </div>
 
-            <div 
-              onClick={() => setPaymentMethod('eversend')}
-              className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
-                paymentMethod === 'eversend' 
-                  ? 'border-[#0033a0] bg-blue-50' 
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              {paymentMethod === 'eversend' && (
-                <div className="absolute top-2 right-2 bg-[#0033a0] rounded-full p-0.5">
-                  <CheckCircle2 className="w-4 h-4 text-white" />
+            {/* ── Credit / Debit Card ── */}
+            {gatewayEnabled.card && (
+              <div
+                onClick={() => setPaymentMethod('card')}
+                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
+                  paymentMethod === 'card'
+                    ? 'border-[#ff3b30] bg-red-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                {paymentMethod === 'card' && (
+                  <div className="absolute top-2 right-2 bg-[#ff3b30] rounded-full p-0.5">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div className="flex gap-2 items-center h-8 mb-1">
+                  <img src="https://cdn.iconscout.com/icon/free/png-256/visa-3-226460.png" alt="Visa" className="h-4 object-contain" />
+                  <img src="https://cdn.iconscout.com/icon/free/png-256/mastercard-2-226462.png" alt="Mastercard" className="h-6 object-contain" />
                 </div>
-              )}
-              <div className="h-8 flex flex-col items-center mb-1">
-                <img src="https://eversend.co/assets/eversend-logo.png" alt="EverSend" className="h-6 object-contain mb-1" />
-                <div className="bg-[#40e0d0] text-gray-900 px-2 py-0.5 rounded text-[10px] font-bold">
-                  MTN, Telecel, Tigo
-                </div>
+                <span className={`font-bold ${paymentMethod === 'card' ? 'text-[#ff3b30]' : 'text-gray-700'}`}>Credit / Debit</span>
               </div>
-              <span className={`font-bold ${paymentMethod === 'eversend' ? 'text-[#0033a0]' : 'text-gray-700'}`}>EverSend</span>
-            </div>
+            )}
 
-            <div 
-              onClick={() => setPaymentMethod('paypal')}
-              className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
-                paymentMethod === 'paypal' 
-                  ? 'border-[#0079C1] bg-blue-50' 
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              {paymentMethod === 'paypal' && (
-                <div className="absolute top-2 right-2 bg-[#0079C1] rounded-full p-0.5">
-                  <CheckCircle2 className="w-4 h-4 text-white" />
+            {/* ── EverSend ── */}
+            {gatewayEnabled.eversend && (
+              <div
+                onClick={() => setPaymentMethod('eversend')}
+                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
+                  paymentMethod === 'eversend'
+                    ? 'border-[#0033a0] bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                {paymentMethod === 'eversend' && (
+                  <div className="absolute top-2 right-2 bg-[#0033a0] rounded-full p-0.5">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div className="h-8 flex flex-col items-center mb-1">
+                  <img src="https://eversend.co/assets/eversend-logo.png" alt="EverSend" className="h-6 object-contain mb-1" />
+                  <div className="bg-[#40e0d0] text-gray-900 px-2 py-0.5 rounded text-[10px] font-bold">
+                    MTN, Telecel, Tigo
+                  </div>
                 </div>
-              )}
-              <div className="h-8 flex items-center mb-1">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-6 object-contain" />
+                <span className={`font-bold ${paymentMethod === 'eversend' ? 'text-[#0033a0]' : 'text-gray-700'}`}>EverSend</span>
               </div>
-              <span className={`font-bold ${paymentMethod === 'paypal' ? 'text-[#0079C1]' : 'text-gray-700'}`}>PayPal</span>
-            </div>
+            )}
+
+            {/* ── PayPal ── */}
+            {gatewayEnabled.paypal && (
+              <div
+                onClick={() => setPaymentMethod('paypal')}
+                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
+                  paymentMethod === 'paypal'
+                    ? 'border-[#0079C1] bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                }`}
+              >
+                {paymentMethod === 'paypal' && (
+                  <div className="absolute top-2 right-2 bg-[#0079C1] rounded-full p-0.5">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                <div className="h-8 flex items-center mb-1">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-6 object-contain" />
+                </div>
+                <span className={`font-bold ${paymentMethod === 'paypal' ? 'text-[#0079C1]' : 'text-gray-700'}`}>PayPal</span>
+              </div>
+            )}
+
           </div>
         </div>
 

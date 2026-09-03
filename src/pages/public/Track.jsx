@@ -4,6 +4,7 @@ import { db, backendMode } from '../../lib/db'
 import { simulatePayment } from '../../lib/payments'
 import { statusMeta } from '../../data/statusIcons'
 import EverSendGateway from '../../components/payments/EverSendGateway'
+import { usePaymentSettings } from '../../context/PaymentSettingsContext'
 
 // Full spec: Section 6 of the build guide. Reads through db.getPublicOrder
 // (which mirrors the recipient-safe `public_order_lookup` view even in
@@ -18,6 +19,12 @@ export default function Track() {
   const [paying, setPaying] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('card')
   const [showEverSend, setShowEverSend] = useState(false)
+
+  const { settings: gwSettings } = usePaymentSettings()
+  const gatewayEnabled = {
+    card: gwSettings?.card_enabled !== false,
+    eversend: gwSettings?.eversend_enabled !== false,
+  }
   
   const [deliveryForm, setDeliveryForm] = useState({ recipient_name: '', recipient_phone: '', recipient_address: '', recipient_region: '' })
   const [deliveryErrors, setDeliveryErrors] = useState({})
@@ -260,30 +267,34 @@ export default function Track() {
               </p>
               
               <div className="space-y-3 mb-4">
-                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 bg-white">
-                  <input 
-                    type="radio" 
-                    name="payment" 
-                    value="card"
-                    checked={paymentMethod === 'card'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-5 h-5 text-[var(--color-brand-orange)] focus:ring-[var(--color-brand-orange)]" 
-                  />
-                  <CreditCard className="w-6 h-6 text-gray-600" />
-                  <span className="font-semibold text-gray-800">Credit / Debit Card</span>
-                </label>
-                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 bg-white">
-                  <input 
-                    type="radio" 
-                    name="payment"
-                    value="eversend"
-                    checked={paymentMethod === 'eversend'}
-                    onChange={(e) => setPaymentMethod(e.target.value)} 
-                    className="w-5 h-5 text-[#0033a0] focus:ring-[#0033a0]" 
-                  />
-                  <div className="w-6 h-6 bg-[#0033a0] rounded flex items-center justify-center text-xs font-bold text-white">E</div>
-                  <span className="font-semibold text-gray-800">EverSend (Mobile Money)</span>
-                </label>
+                {gatewayEnabled.card && (
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 bg-white">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="card"
+                      checked={paymentMethod === 'card'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-5 h-5 text-[var(--color-brand-orange)] focus:ring-[var(--color-brand-orange)]"
+                    />
+                    <CreditCard className="w-6 h-6 text-gray-600" />
+                    <span className="font-semibold text-gray-800">Credit / Debit Card</span>
+                  </label>
+                )}
+                {gatewayEnabled.eversend && (
+                  <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 bg-white">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="eversend"
+                      checked={paymentMethod === 'eversend'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-5 h-5 text-[#0033a0] focus:ring-[#0033a0]"
+                    />
+                    <div className="w-6 h-6 bg-[#0033a0] rounded flex items-center justify-center text-xs font-bold text-white">E</div>
+                    <span className="font-semibold text-gray-800">EverSend (Mobile Money)</span>
+                  </label>
+                )}
               </div>
 
               <button

@@ -767,5 +767,25 @@ export const remoteDb = {
       
     if (error) throw error
     return data
+  },
+
+  // --- PAYMENT SETTINGS ---
+  async getPaymentSettings() {
+    const defaults = { card_enabled: true, eversend_enabled: true, paypal_enabled: true }
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'payment_gateways')
+      .single()
+    if (error) return defaults           // table may not exist yet — default to all on
+    return data?.value ?? defaults
+  },
+
+  async updatePaymentSettings(settings) {
+    const { error } = await supabase
+      .from('app_settings')
+      .upsert({ key: 'payment_gateways', value: settings }, { onConflict: 'key' })
+    if (error) throw error
+    return settings
   }
 }

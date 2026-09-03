@@ -550,5 +550,17 @@ export const localDb = {
     }
     table.customer_messages = [newMsg, ...table.customer_messages]
     return newMsg
+  },
+
+  // --- PAYMENT SETTINGS ---
+  async getPaymentSettings() {
+    const defaults = { card_enabled: true, eversend_enabled: true, paypal_enabled: true }
+    return table.settings?.payment_gateways ?? defaults
+  },
+
+  async updatePaymentSettings(settings) {
+    const current = table.settings ?? {}
+    table.settings = { ...current, payment_gateways: settings }
+    return settings
   }
 }

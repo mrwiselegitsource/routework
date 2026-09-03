@@ -25,6 +25,7 @@ const KEYS = {
   audit_logs: `${PREFIX}audit_logs`,
   automation_rules: `${PREFIX}automation_rules`,
   order_automations: `${PREFIX}order_automations`,
+  settings: `${PREFIX}settings`,
 }
 
 export function uid(prefix = '') {
@@ -78,6 +79,13 @@ export const table = {
   set automation_rules(v) { write(KEYS.automation_rules, v) },
   get order_automations() { return read(KEYS.order_automations) },
   set order_automations(v) { write(KEYS.order_automations, v) },
+  get settings() {
+    try {
+      const raw = localStorage.getItem(KEYS.settings)
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  },
+  set settings(v) { localStorage.setItem(KEYS.settings, JSON.stringify(v)) },
 }
 
 export function getSession() {
