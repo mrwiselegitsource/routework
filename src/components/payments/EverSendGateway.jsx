@@ -110,7 +110,7 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
             position: 'sticky', 
             top: 0, 
             zIndex: 20, 
-            height: '230px', 
+            height: '245px', 
             background: 'white', 
             borderBottom: '1px solid #e8e8e8', 
             display: 'flex', 
@@ -135,8 +135,8 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
           <div style={{ 
             height: '600px', 
             overflowY: 'auto', 
-            marginTop: '-230px', 
-            paddingTop: '230px', 
+            marginTop: '-245px', 
+            paddingTop: '245px', 
             background: 'white', 
             borderRadius: '0 0 12px 12px' 
           }}>
@@ -144,7 +144,7 @@ export default function EverSendGateway({ orderId, amountDue, onSuccess, onCance
               <iframe
                 title="EverSend Payment"
                 src={paymentLink}
-                style={{ width: '100%', height: '1100px', border: 'none', display: 'block', marginTop: '-230px' }}
+                style={{ width: '100%', height: '1100px', border: 'none', display: 'block', marginTop: '-245px' }}
                 scrolling="no"
                 sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                 referrerPolicy="no-referrer"
